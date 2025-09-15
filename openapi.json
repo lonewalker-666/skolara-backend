@@ -1,0 +1,397 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "Skolara API",
+    "description": "Backend for searching colleges, managing applications, and processing payments.",
+    "version": "1.0.0",
+    "base_url": "http://localhost:8000"
+  },
+  "tags": [
+    { "name": "Health", "description": "Service health checks" },
+    { "name": "Auth", "description": "OTP, login, signup, and token endpoints" }
+  ],
+  "paths": {
+    "/health": {
+      "get": {
+        "tags": ["Health"],
+        "summary": "Health check",
+        "operationId": "getHealth",
+        "responses": {
+          "200": {
+            "description": "Service is healthy",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/HealthResponse" },
+                "examples": {
+                  "ok": { "value": { "status": "ok" } }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/auth/otp/send": {
+      "post": {
+        "tags": ["Auth"],
+        "summary": "Send OTP to a mobile number",
+        "operationId": "sendOtp",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/OtpSendRequest" },
+              "examples": {
+                "default": { "value": { "mobile": "9876543210" } }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OTP created and SMS dispatched",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/OtpSendResponse" },
+                "examples": {
+                  "sent": {
+                    "value": {
+                      "verificationId": "a9b8b8f2-5e7c-4a0a-90a1-6c0f3b5f9a21",
+                      "expiresAt": "2025-01-01T10:05:00.000Z",
+                      "message": "OTP_SENT"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Failed to create/send OTP",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" },
+                "examples": {
+                  "rateLimitedHourly": { "value": { "error": "RATE_LIMITED_HOURLY" } }
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Route-level rate limit exceeded",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/TooManyRequestsResponse" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/auth/otp/verify": {
+      "post": {
+        "tags": ["Auth"],
+        "summary": "Verify OTP for a mobile number",
+        "operationId": "verifyOtp",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/OtpVerifyRequest" },
+              "examples": {
+                "default": { "value": { "mobile": "9876543210", "otp": "123456" } }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OTP verified",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/OtpVerifyResponse" },
+                "examples": {
+                  "verified": {
+                    "value": {
+                      "verificationId": "a9b8b8f2-5e7c-4a0a-90a1-6c0f3b5f9a21",
+                      "verified": true,
+                      "expiresAt": "2025-01-01T10:01:00.000Z"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid/expired OTP or attempts exceeded",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" },
+                "examples": {
+                  "invalid": { "value": { "error": "INVALID_OTP" } },
+                  "expired": { "value": { "error": "OTP_EXPIRED" } },
+                  "attempts": { "value": { "error": "OTP_ATTEMPTS_EXCEEDED" } }
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Route-level rate limit exceeded",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/TooManyRequestsResponse" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/auth/login": {
+      "post": {
+        "tags": ["Auth"],
+        "summary": "Login after OTP verify (within 30 seconds)",
+        "operationId": "loginWithOtp",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/LoginRequest" },
+              "examples": {
+                "default": { "value": { "verificationId": "a9b8b8f2-5e7c-4a0a-90a1-6c0f3b5f9a21", "mobile": "9876543210" } }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Login successful",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/AuthTokensWithUser" }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized or OTP window expired",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" },
+                "examples": {
+                  "expired": { "value": { "error": "OTP_WINDOW_EXPIRED" } },
+                  "unauth": { "value": { "error": "UNAUTHORIZED" } }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/auth/signup": {
+      "post": {
+        "tags": ["Auth"],
+        "summary": "Signup after OTP verify (within 8 minutes)",
+        "operationId": "signupWithOtp",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/SignupRequest" },
+              "examples": {
+                "default": {
+                  "value": {
+                    "verificationId": "a9b8b8f2-5e7c-4a0a-90a1-6c0f3b5f9a21",
+                    "first_name": "User",
+                    "last_name": "Skolara",
+                    "email": "user@example.com",
+                    "course_type_id": 1
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Signup successful",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/AuthTokensWithUser" }
+              }
+            }
+          },
+          "400": {
+            "description": "Unauthorized or OTP window expired",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" },
+                "examples": {
+                  "expired": { "value": { "error": "OTP_WINDOW_EXPIRED" } },
+                  "unauth": { "value": { "error": "UNAUTHORIZED" } }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/auth/token": {
+      "post": {
+        "tags": ["Auth"],
+        "summary": "Exchange refresh token for new access token",
+        "operationId": "exchangeRefreshToken",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/TokenRequest" },
+              "examples": {
+                "default": { "value": { "refreshToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..." } }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "New access token issued",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/TokenResponse" }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized / invalid refresh token",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" },
+                "examples": {
+                  "unauth": { "value": { "error": "UNAUTHORIZED" } }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "securitySchemes": {
+      "bearerAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "JWT",
+        "description": "Standard JWT bearer token (used on protected endpoints)."
+      }
+    },
+    "schemas": {
+      "HealthResponse": {
+        "type": "object",
+        "properties": {
+          "status": { "type": "string", "example": "ok" }
+        },
+        "required": ["status"]
+      },
+      "ErrorResponse": {
+        "type": "object",
+        "properties": {
+          "error": { "type": "string" }
+        },
+        "required": ["error"]
+      },
+      "TooManyRequestsResponse": {
+        "type": "object",
+        "properties": {
+          "statusCode": { "type": "integer", "example": 429 },
+          "error": { "type": "string", "example": "Too Many Requests" },
+          "message": { "type": "string", "example": "Rate limit exceeded, retry in 30 seconds" }
+        }
+      },
+      "OtpSendRequest": {
+        "type": "object",
+        "properties": {
+          "mobile": {
+            "type": "string",
+            "pattern": "^[0-9]{10}$"
+          }
+        },
+        "required": ["mobile"]
+      },
+      "OtpSendResponse": {
+        "type": "object",
+        "properties": {
+          "verificationId": { "type": "string", "format": "uuid" },
+          "expiresAt": { "type": "string", "format": "date-time" },
+          "message": { "type": "string", "enum": ["OTP_SENT"] }
+        },
+        "required": ["verificationId", "expiresAt", "message"]
+      },
+      "OtpVerifyRequest": {
+        "type": "object",
+        "properties": {
+          "mobile": { "type": "string", "pattern": "^[0-9]{10}$" },
+          "otp": { "type": "string", "pattern": "^[0-9]{6}$" }
+        },
+        "required": ["mobile", "otp"]
+      },
+      "OtpVerifyResponse": {
+        "type": "object",
+        "properties": {
+          "verificationId": { "type": "string", "format": "uuid" },
+          "verified": { "type": "boolean", "example": true },
+          "expiresAt": { "type": "string", "format": "date-time" }
+        },
+        "required": ["verificationId", "verified", "expiresAt"]
+      },
+      "LoginRequest": {
+        "type": "object",
+        "properties": {
+          "verificationId": { "type": "string", "format": "uuid" },
+          "mobile": { "type": "string", "pattern": "^[0-9]{10}$" }
+        },
+        "required": ["verificationId", "mobile"]
+      },
+      "SignupRequest": {
+        "type": "object",
+        "properties": {
+          "verificationId": { "type": "string", "format": "uuid" },
+          "first_name": { "type": "string", "minLength": 1 },
+          "last_name": { "type": "string", "minLength": 1 },
+          "email": { "type": "string", "format": "email" },
+          "course_type_id": { "type": "integer" }
+        },
+        "required": ["verificationId", "first_name", "last_name", "email", "course_type_id"]
+      },
+      "AuthTokensWithUser": {
+        "type": "object",
+        "properties": {
+          "accessToken": { "type": "string", "description": "JWT access token" },
+          "refreshToken": { "type": "string", "description": "JWT refresh token" },
+          "user": { "$ref": "#/components/schemas/User" }
+        },
+        "required": ["accessToken", "refreshToken", "user"]
+      },
+      "User": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "integer", "example": 123 },
+          "mobile": { "type": "string", "example": "9876543210" },
+          "email": { "type": "string", "format": "email", "example": "user@example.com" }
+        },
+        "required": ["id", "mobile", "email"]
+      },
+      "TokenRequest": {
+        "type": "object",
+        "properties": {
+          "refreshToken": { "type": "string" }
+        },
+        "required": ["refreshToken"]
+      },
+      "TokenResponse": {
+        "type": "object",
+        "properties": {
+          "accessToken": { "type": "string" }
+        },
+        "required": ["accessToken"]
+      }
+    }
+  }
+}

@@ -1,0 +1,52 @@
+{
+  "name": "skolara-backend",
+  "version": "1.0.0",
+  "description": "Backend for Skolara application",
+  "main": "dist/index.js",
+  "type": "module",
+  "scripts": {
+    "dev": "tsx watch src/index.ts",
+    "build": "tsc",
+    "start": "node dist/index.js",
+    "test": "vitest",
+    "test:watch": "vitest --watch",
+    "migrate": "prisma migrate deploy",
+    "migrate:dev": "prisma migrate dev",
+    "generate": "prisma generate",
+    "lint": "eslint src/**/*.ts",
+    "format": "prettier --write src/**/*.ts",
+    "seed": "tsx prisma/seeders/seed.ts",
+    "seed:single": "tsx prisma/seeders/seed.ts"
+  },
+  "dependencies": {
+    "@aws-sdk/client-sns": "^3.888.0",
+    "@fastify/cors": "^8.4.0",
+    "@fastify/helmet": "^11.1.1",
+    "@fastify/swagger": "^8.12.0",
+    "@fastify/swagger-ui": "^2.1.0",
+    "@prisma/client": "^5.6.0",
+    "dotenv": "^16.3.1",
+    "fastify": "^4.24.3",
+    "jsonwebtoken": "^9.0.2",
+    "pino": "^8.16.2",
+    "pino-pretty": "^10.2.3",
+    "rate-limiter-flexible": "^3.0.6",
+    "zod": "^3.22.4",
+    "zod-to-json-schema": "^3.24.6"
+  },
+  "devDependencies": {
+    "@types/jsonwebtoken": "^9.0.10",
+    "@types/node": "^20.19.13",
+    "@typescript-eslint/eslint-plugin": "^6.12.0",
+    "@typescript-eslint/parser": "^6.12.0",
+    "eslint": "^8.54.0",
+    "prettier": "^3.1.0",
+    "prisma": "^5.6.0",
+    "tsx": "^4.6.0",
+    "typescript": "^5.3.2",
+    "vitest": "^0.34.6"
+  },
+  "engines": {
+    "node": ">=20.0.0"
+  }
+}

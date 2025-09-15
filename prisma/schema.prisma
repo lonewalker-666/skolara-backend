@@ -1,0 +1,386 @@
+// ------------------------------------------------------------
+// Prisma schema
+// DB: PostgreSQL
+// ------------------------------------------------------------
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// -------------------------- Enums --------------------------
+
+enum user_gender {
+  Male
+  Female
+  Others
+}
+
+enum user_theme {
+  Light
+  Dark
+}
+
+enum currency_type {
+  INR
+}
+
+enum billing_cycle_type {
+  Yearly
+  Semester
+  Monthly
+}
+
+enum order_status_type {
+  Created
+  Cancelled
+  Failed
+  Paid
+}
+
+enum payment_provider {
+  RazorPay
+}
+
+// -------------------------- Models --------------------------
+
+model users {
+  id                   Int           @id @default(autoincrement())
+  email                String        @unique @db.VarChar(255)
+  mobile               String        @unique @db.VarChar(10)
+  first_name           String        @db.VarChar(255)
+  last_name            String        @db.VarChar(255)
+  dob                  DateTime?     @db.Date
+  gender               user_gender?
+  ref_id               String        @unique @db.Uuid
+  mobile_verified      Boolean       @default(false)
+  email_verified       Boolean       @default(false)
+  prefered_course_type Int?
+  prefered_theme       user_theme    @default(Light)
+  allow_notifications  Boolean       @default(true)
+  is_active            Boolean       @default(true)
+  created_at           DateTime      @default(now()) @db.Timestamptz(6)
+  updated_at           DateTime      @default(now()) @updatedAt @db.Timestamptz(6)
+
+  // Relations
+  saved_colleges       saved_colleges[]
+  applied_colleges     applied_colleges[]
+  orders               orders[]   
+}
+
+model college_type {
+  id         Int       @id @default(autoincrement())
+  name       String    @unique @db.VarChar(255)
+  created_at DateTime  @default(now()) @db.Timestamptz(6)
+  updated_at DateTime  @default(now()) @updatedAt @db.Timestamptz(6)
+
+  colleges   college[]
+}
+
+model college {
+  id               Int        @id @default(autoincrement())
+  ref_id           String     @unique @db.Uuid
+  name             String     @db.VarChar(255)
+  area             String     @db.VarChar(255)
+  city             String     @db.VarChar(100)
+  website          String     @db.VarChar(255)
+  college_type_id  Int
+  deadline         DateTime   @db.Date
+  description      String     @db.Text
+  logo_url         String     @db.VarChar(500)
+  cover_url        String     @db.VarChar(500)
+  created_at       DateTime    @default(now()) @db.Timestamptz(6)
+  updated_at       DateTime    @default(now()) @updatedAt @db.Timestamptz(6)
+
+  // Relations
+  college_type     college_type            @relation(fields: [college_type_id], references: [id], onDelete: Cascade)
+  degree_fee_ranges college_degree_fee_range[]
+  hostel_facilities hostel_facility[]
+  eligibility      eligibility_criteria[]
+  saved_by         saved_colleges[]
+  applied_by       applied_colleges[]
+  top_recruiters   top_recruiters[]
+  placement_stats  college_placement_stats[]
+  placement_cell   placement_cell_info[]
+}
+
+model degree_type {
+  id         Int      @id @default(autoincrement())
+  name       String   @unique @db.VarChar(255)
+  short_name String   @db.VarChar(10)
+  created_at DateTime @default(now()) @db.Timestamptz(6)
+  updated_at DateTime @default(now()) @updatedAt @db.Timestamptz(6)
+
+  degrees    degree[]
+}
+
+model degree {
+  id               Int       @id @default(autoincrement())
+  name             String    @db.VarChar(255)
+  degree_type_id   Int
+  specialization   String?   @db.VarChar(255)
+  description      String?   @db.Text
+  created_at       DateTime  @default(now()) @db.Timestamptz(6)
+  updated_at       DateTime  @default(now()) @updatedAt @db.Timestamptz(6)
+
+  degree_type      degree_type @relation(fields: [degree_type_id], references: [id], onDelete: Cascade)
+
+  fee_ranges       college_degree_fee_range[]
+  eligibility      eligibility_criteria[]
+  
+  @@index([name])
+  @@unique([name,specialization])
+}
+
+model college_degree_fee_range {
+  id             Int           @id @default(autoincrement())
+  college_id     Int
+  degree_id      Int
+  academic_year  String        @db.VarChar(20)
+  year           String        @db.VarChar(4)
+  min_annual_fee Decimal?      @db.Decimal(12, 2)
+  max_annual_fee Decimal?      @db.Decimal(12, 2)
+  duration_months  Int
+  application_fee  Decimal?  @db.Decimal(12, 2)
+  currency       currency_type @default(INR)
+  note           String?       @db.Text
+  created_at     DateTime      @default(now()) @db.Timestamptz(6)
+  updated_at     DateTime      @default(now()) @updatedAt @db.Timestamptz(6)
+
+  // Relations
+  college        college       @relation(fields: [college_id], references: [id], onDelete: Cascade)
+  degree         degree        @relation(fields: [degree_id], references: [id], onDelete: Cascade)
+
+@@index([college_id])
+@@index([degree_id])
+@@unique([college_id, degree_id, academic_year])
+
+}
+
+model hostel_sharing_type {
+  id         Int       @id @default(autoincrement())
+  name       String    @unique @db.VarChar(255)
+  created_at DateTime  @default(now()) @db.Timestamptz(6)
+  updated_at DateTime  @default(now()) @updatedAt @db.Timestamptz(6)
+
+  facilities hostel_facility[]
+
+}
+
+model hostel_facility {
+  id                      Int                @id @default(autoincrement())
+  college_id              Int
+  gender                  user_gender
+  hostel_sharing_type_id  Int
+  ac                      Boolean            @default(false)
+  room_fee                Decimal?           @db.Decimal(12, 2)
+  mess_fee                Decimal?           @db.Decimal(12, 2)
+  billing_cycle           billing_cycle_type?
+  currency                currency_type?
+  notes                   String?            @db.Text
+  created_at              DateTime           @default(now()) @db.Timestamptz(6)
+  updated_at              DateTime           @default(now()) @updatedAt @db.Timestamptz(6)
+
+  // Relations
+  college                 college            @relation(fields: [college_id], references: [id], onDelete: Cascade)
+  sharing_type            hostel_sharing_type? @relation(fields: [hostel_sharing_type_id], references: [id], onDelete: Cascade)
+
+  @@index([college_id])
+  @@unique([college_id,hostel_sharing_type_id,gender,ac])
+}
+
+model entrance_exam {
+  id         Int       @id @default(autoincrement())
+  name       String    @unique @db.VarChar(255)
+  created_at DateTime  @default(now()) @db.Timestamptz(6)
+  updated_at DateTime  @default(now()) @updatedAt @db.Timestamptz(6)
+
+  eligibility eligibility_criteria[]
+}
+
+model eligibility_criteria {
+  id              Int       @id @default(autoincrement())
+  college_id      Int
+  degree_id       Int
+  criteria        String?   @db.Text
+  entrance_exam_id Int?
+  min_percentage  Decimal?  @db.Decimal(3, 2)
+  max_percentage  Decimal?  @db.Decimal(3, 2)
+  created_at      DateTime  @default(now()) @db.Timestamptz(6)
+  updated_at      DateTime  @default(now()) @updatedAt @db.Timestamptz(6)
+
+  // Relations
+  college         college      @relation(fields: [college_id], references: [id], onDelete: Cascade)
+  degree          degree       @relation(fields: [degree_id], references: [id], onDelete: Cascade)
+  entrance_exam   entrance_exam? @relation(fields: [entrance_exam_id], references: [id], onDelete: SetNull)
+
+  @@index([college_id])
+  @@index([degree_id])
+  @@unique([college_id,degree_id])
+}
+
+model saved_colleges {
+  id         Int      @id @default(autoincrement())
+  college_id Int
+  user_id    Int
+  created_at DateTime @default(now()) @db.Timestamptz(6)
+  updated_at DateTime @default(now()) @updatedAt @db.Timestamptz(6)
+  deleted_at DateTime? @db.Timestamptz(6)
+
+  // Relations
+  college    college @relation(fields: [college_id], references: [id], onDelete: Cascade)
+  user       users   @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  
+  @@index([college_id])
+  @@index([user_id])
+  @@unique([college_id,user_id])
+}
+
+model application_status {
+  id         Int      @id @default(autoincrement())
+  name       String   @unique @db.VarChar(255)
+  created_at DateTime @default(now()) @db.Timestamptz(6)
+  updated_at DateTime @default(now()) @updatedAt @db.Timestamptz(6)
+
+  tracks     application_tracking[]
+
+}
+
+model applied_colleges {
+  id         Int      @id @default(autoincrement())
+  college_id Int
+  user_id    Int
+  is_active  Boolean? @default(true)
+  created_at DateTime @default(now()) @db.Timestamptz(6)
+  updated_at DateTime @default(now()) @updatedAt @db.Timestamptz(6)
+
+  // Relations
+  college    college @relation(fields: [college_id], references: [id], onDelete: Cascade)
+  user       users   @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  tracking   application_tracking[]
+
+  @@index([college_id])
+  @@index([user_id])
+  @@index([college_id,user_id])
+}
+
+model application_tracking {
+  id                     Int      @id @default(autoincrement())
+  application_id         Int
+  application_status_id  Int      @default(1)
+  ssl_marksheet          String?  @db.VarChar(255)
+  hsc_marksheet          String?  @db.VarChar(255)
+  created_at             DateTime @default(now()) @db.Timestamptz(6)
+  updated_at             DateTime @default(now()) @updatedAt @db.Timestamptz(6)
+
+  // Relations
+  application            applied_colleges  @relation(fields: [application_id], references: [id], onDelete: Cascade)
+  status                 application_status @relation(fields: [application_status_id], references: [id], onDelete: Restrict)
+
+  @@index([application_id])
+  @@index([application_status_id])
+  @@unique([application_id,application_status_id])
+}
+
+model top_recruiters {
+  id         Int      @id @default(autoincrement())
+  college_id Int      @unique
+  company    String   @db.Text
+  created_at DateTime @default(now()) @db.Timestamptz(6)
+  updated_at DateTime @default(now()) @updatedAt @db.Timestamptz(6)
+
+  college    college  @relation(fields: [college_id], references: [id], onDelete: Cascade)
+
+}
+
+model college_placement_stats {
+  id                   Int      @id @default(autoincrement())
+  college_id           Int
+  year                 Int
+  min_package_lpa      Decimal? @db.Decimal(8, 2)
+  highest_package_lpa  Decimal? @db.Decimal(8, 2)
+  notes                String?  @db.Text
+  created_at           DateTime @default(now()) @db.Timestamptz(6)
+  updated_at           DateTime @default(now()) @updatedAt @db.Timestamptz(6)
+
+  college              college  @relation(fields: [college_id], references: [id], onDelete: Cascade)
+
+  @@index([college_id])
+  @@unique([college_id, year])
+}
+
+model placement_cell_info {
+  id          Int      @id @default(autoincrement())
+  college_id  Int      @unique
+  description String   @db.Text
+  created_at  DateTime @default(now()) @db.Timestamptz(6)
+  updated_at  DateTime @default(now()) @updatedAt @db.Timestamptz(6)
+
+  college     college  @relation(fields: [college_id], references: [id], onDelete: Cascade)
+
+  @@index([college_id])
+}
+
+model orders {
+  id                String            @id @db.Uuid @default(uuid())
+  user_id           Int
+  application_id    String            @db.Uuid
+  provider          payment_provider
+  provider_order_id String            @unique @db.VarChar(255)
+  amount            Decimal           @db.Decimal(12, 2)
+  currency          currency_type     @default(INR)
+  status            order_status_type @default(Created)
+  receipt_no        String?           @db.VarChar(100)
+  meta              Json              @db.JsonB
+  created_at        DateTime          @default(now()) @db.Timestamptz(6)
+  updated_at        DateTime          @default(now()) @updatedAt @db.Timestamptz(6)
+
+  // Relations
+  payments          payments[]
+  user       users            @relation(fields: [user_id], references: [id], onDelete: Cascade)
+
+  @@index([application_id])
+  @@index([status])
+  @@index([user_id])
+}
+
+model payments {
+  id                    String    @id @db.Uuid @default(uuid())
+  order_id              String    @db.Uuid
+  provider_payment_id   String   @db.VarChar(255)
+  verification_signature String  @db.VarChar(255)
+  amount                Decimal  @db.Decimal(12, 2)
+  currency              currency_type?
+  status                Boolean?
+  method                String?   @db.VarChar(50)
+  captured_at           DateTime? @db.Timestamptz(6)
+  failure_reason        String?   @db.Text
+  meta                  Json?     @db.JsonB
+  created_at            DateTime  @default(now()) @db.Timestamptz(6)
+  updated_at            DateTime  @default(now()) @updatedAt @db.Timestamptz(6)
+
+  // Relations
+  order                 orders    @relation(fields: [order_id], references: [id], onDelete: Cascade)
+  
+  @@index([status])
+  @@index([order_id])
+}
+
+model otp_verification {
+  id         String   @id @db.Uuid @default(uuid())
+  mobile     String   @db.VarChar(10)
+  otp        String   @db.VarChar(6)
+  is_active  Boolean  @default(true)
+  verified   Boolean?
+  expires_at DateTime @db.Timestamptz(6)
+  attempts   Int      @default(0)
+  created_at DateTime @default(now()) @db.Timestamptz(6)
+  updated_at DateTime @default(now()) @updatedAt @db.Timestamptz(6)
+
+  @@index([mobile,is_active])
+  @@index([mobile, created_at])  // helps hourly-rate queries
+}

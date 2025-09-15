@@ -1,0 +1,43 @@
+export class AppError extends Error {
+  constructor(
+    public code: string,
+    public message: string,
+    public statusCode: number = 400
+  ) {
+    super(message);
+    this.name = 'AppError';
+  }
+}
+
+export const errorCodes = {
+  // General / Validation
+  VALIDATION_ERROR: 'VALIDATION_ERROR',
+  INVALID_INPUT: 'INVALID_INPUT',
+  UNAUTHORIZED: 'UNAUTHORIZED',
+  FORBIDDEN: 'FORBIDDEN',
+  NOT_FOUND: 'NOT_FOUND',
+
+  // College Search
+  COLLEGE_NOT_FOUND: 'COLLEGE_NOT_FOUND',
+  INVALID_SEARCH_FILTERS: 'INVALID_SEARCH_FILTERS',
+
+  // Application / Submission
+  APPLICATION_NOT_FOUND: 'APPLICATION_NOT_FOUND',
+  APPLICATION_DEADLINE_PASSED: 'APPLICATION_DEADLINE_PASSED',
+  MISSING_REQUIRED_DOCUMENTS: 'MISSING_REQUIRED_DOCUMENTS',
+  DUPLICATE_APPLICATION: 'DUPLICATE_APPLICATION',
+
+  // Payment / Billing
+  PAYMENT_FAILED: 'PAYMENT_FAILED',
+  PAYMENT_DECLINED: 'PAYMENT_DECLINED',
+  INVALID_PAYMENT_METHOD: 'INVALID_PAYMENT_METHOD',
+  REFUND_FAILED: 'REFUND_FAILED',
+  SUBSCRIPTION_ERROR: 'SUBSCRIPTION_ERROR',
+
+  // External Services
+  THIRD_PARTY_SERVICE_ERROR: 'THIRD_PARTY_SERVICE_ERROR',
+  RATE_LIMIT_EXCEEDED: 'RATE_LIMIT_EXCEEDED',
+  TOKEN_LIMIT_EXCEEDED: 'TOKEN_LIMIT_EXCEEDED'
+} as const;
+
+export type ErrorCodes = typeof errorCodes[keyof typeof errorCodes];

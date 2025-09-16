@@ -6,7 +6,7 @@ import swaggerUI from "@fastify/swagger-ui";
 import { RateLimiterMemory } from "rate-limiter-flexible";
 import { env } from "./config/env.js";
 import { CONSTANTS } from "./config/constants.js";
-import { AppError, errorCodes } from "./utils/errors.js";
+import { AppError, errorCodes, STATUS_BY_CODE } from "./utils/errors.js";
 import { healthRoutes } from "./routes/health.js";
 import authRoutes from "./routes/auth.js";
 import path from "path";
@@ -115,38 +115,7 @@ fastify.addHook("preHandler", async (request, reply) => {
   }
 });
 
-// ──────────────────────────────────────────────
-// Map error codes to HTTP status (fallbacks)
-const STATUS_BY_CODE: Record<string, number> = {
-  // General
-  [errorCodes.VALIDATION_ERROR]: 400,
-  [errorCodes.INVALID_INPUT]: 400,
-  [errorCodes.UNAUTHORIZED]: 401,
-  [errorCodes.FORBIDDEN]: 403,
-  [errorCodes.NOT_FOUND]: 404,
-  [errorCodes.RATE_LIMIT_EXCEEDED]: 429,
-  [errorCodes.TOKEN_LIMIT_EXCEEDED]: 429,
 
-  // Search
-  [errorCodes.COLLEGE_NOT_FOUND]: 404,
-  [errorCodes.INVALID_SEARCH_FILTERS]: 400,
-
-  // Applications
-  [errorCodes.APPLICATION_NOT_FOUND]: 404,
-  [errorCodes.APPLICATION_DEADLINE_PASSED]: 409,
-  [errorCodes.MISSING_REQUIRED_DOCUMENTS]: 400,
-  [errorCodes.DUPLICATE_APPLICATION]: 409,
-
-  // Payments
-  [errorCodes.PAYMENT_FAILED]: 402,
-  [errorCodes.PAYMENT_DECLINED]: 402,
-  [errorCodes.INVALID_PAYMENT_METHOD]: 400,
-  [errorCodes.REFUND_FAILED]: 400,
-  [errorCodes.SUBSCRIPTION_ERROR]: 400,
-
-  // External
-  [errorCodes.THIRD_PARTY_SERVICE_ERROR]: 502,
-};
 
 // ──────────────────────────────────────────────
 // Error handler

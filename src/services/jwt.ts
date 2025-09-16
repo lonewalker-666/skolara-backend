@@ -21,14 +21,12 @@ export const JwtService = {
   signAccess(payload: Omit<JwtPayload, "type">, opts: SignOptions = {}) {
     return jwt.sign({ ...payload, type: "access" }, ACCESS_SECRET, {
       expiresIn: ACCESS_TTL,
-      subject: String(payload.sub),
       ...opts,
     } as jwt.SignOptions);
   },
   signRefresh(payload: Omit<JwtPayload, "type">, opts: SignOptions = {}) {
     return jwt.sign({ ...payload, type: "refresh" }, REFRESH_SECRET, {
       expiresIn: REFRESH_TTL,
-      subject: String(payload.sub),
       ...opts,
     } as jwt.SignOptions);
   },

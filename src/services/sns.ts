@@ -12,22 +12,31 @@ const client = new SNSClient({
 });
 
 export async function sendSms(mobile: string, message: string) {
-  const phoneNumber = `+91${mobile}`; // default +91
-  const params: any = {
-    PhoneNumber: phoneNumber,
-    Message: message,
-    MessageAttributes: {
-      "AWS.SNS.SMS.SMSType": {
-        DataType: "String",
-        StringValue: "Transactional",
+  try {
+    const phoneNumber = `+91${mobile}`;
+    const params: any = {
+      PhoneNumber: phoneNumber,
+      Message: message,
+      MessageAttributes: {
+        "AWS.SNS.SMS.SMSType": {
+          DataType: "String",
+          StringValue: "Transactional",
+        },
       },
-    },
-  };
-  if (process.env.AWS_SNS_SENDER_ID) {
-    params.MessageAttributes["AWS.SNS.SMS.SenderID"] = {
-      DataType: "String",
-      StringValue: process.env.AWS_SNS_SENDER_ID,
     };
+
+    if (process.env.AWS_SNS_SENDER_ID) {
+      params.MessageAttributes["AWS.SNS.SMS.SenderID"] = {
+        DataType: "String",
+        StringValue: process.env.AWS_SNS_SENDER_ID,
+      };
+    }
+
+    const response = await client.send(new PublishCommand(params));
+    return response; // contains MessageId, useful for debugging
+  } catch (err) {
+    console.error("SNS sendSms error:", err);
+    throw err;
   }
-  await client.send(new PublishCommand(params));
 }
+

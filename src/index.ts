@@ -25,6 +25,8 @@ const fastify = Fastify({
       },
     }),
   },
+  // FIX: ensure correct client IP when behind proxies / localhost tools
+  trustProxy: true,
 });
 
 // ──────────────────────────────────────────────
@@ -49,6 +51,7 @@ await fastify.register(swagger, {
     path: path.join(__dirname, "../openapi.json"), // adjust path relative to this file
     baseDir: process.cwd(), // so $ref work correctly
   },
+  
 });
 
 await fastify.register(swaggerUI, {
@@ -102,8 +105,26 @@ await fastify.register(swaggerUI, {
 // Rate limiting middleware for All routes
 fastify.addHook("preHandler", async (request, reply) => {
   try {
-    // Type assertion to fix the IP access issue
-    const clientIP = (request as any).ip || request.socket.remoteAddress || 'unknown';
+    // FIX: Skip preflight requests (CORS) and docs/static assets that auto-load
+    const url = request.url || "";
+    if (
+      request.method === "OPTIONS" ||
+      url.startsWith("/documentation") ||
+      url.startsWith("/favicon") ||
+      url === "/openapi.json" ||
+      url.startsWith("/assets") // swagger-ui asset path (defensive)
+    ) {
+      return;
+    }
+
+    // FIX: Robust client IP resolution (works with trustProxy)
+    const xff = ((request.headers["x-forwarded-for"] as string) || "").split(",")[0]?.trim();
+    const clientIP =
+      xff ||
+      (request as any).ip ||
+      (request.socket && request.socket.remoteAddress) ||
+      "127.0.0.1";
+
     await rateLimiter.consume(clientIP);
   } catch {
     reply.status(429).send({
@@ -114,8 +135,6 @@ fastify.addHook("preHandler", async (request, reply) => {
     });
   }
 });
-
-
 
 // ──────────────────────────────────────────────
 // Error handler

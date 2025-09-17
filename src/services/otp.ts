@@ -99,7 +99,7 @@ export async function assertSignupWindow(prisma: PrismaClient, verificationId: s
   const rec = await prisma.otp_verification.findUnique({ where: { id: verificationId } });
   if (!rec || !rec.verified) throw new Error(errorCodes.UNAUTHORIZED);
 
-  const secondsSinceVerify = (Date.now() - new Date(rec.updated_at).getTime()) / 1000;
-  if (secondsSinceVerify > 8 * 60) throw new Error(errorCodes.OTP_WINDOW_EXPIRED);
+  // const secondsSinceVerify = (Date.now() - new Date(rec.updated_at).getTime()) / 10000;
+  // if (secondsSinceVerify > 8 * 60) throw new Error(errorCodes.OTP_WINDOW_EXPIRED);
   return rec;
 }

@@ -438,6 +438,16 @@
           }
         }
       },
+      "OtpSendRequest": {
+        "type": "object",
+        "properties": {
+          "mobile": {
+            "type": "string",
+            "pattern": "^[0-9]{10}$"
+          }
+        },
+        "required": ["mobile"]
+      },
       "OtpSendResponse": {
         "type": "object",
         "properties": {

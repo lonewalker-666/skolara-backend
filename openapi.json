@@ -521,8 +521,8 @@
         "type": "object",
         "properties": {
           "id": {
-            "type": "integer",
-            "example": 123
+            "type": "string",
+            "example": "123"
           },
           "mobile": {
             "type": "string",

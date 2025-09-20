@@ -11,7 +11,7 @@ const {
 type SignOptions = { expiresIn?: string | number; subject?: string };
 
 export type JwtPayload = {
-  sub: string | number;
+  sub: string;
   mobile: string;
   email?: string | null;
   type: "access" | "refresh";

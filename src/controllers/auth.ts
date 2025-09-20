@@ -88,12 +88,12 @@ export async function login(req: FastifyRequest, reply: FastifyReply) {
     }
 
     const accessToken = JwtService.signAccess({
-      sub: user.id,
+      sub: user.ref_id,
       mobile: user.mobile,
       email: user.email,
     });
     const refreshToken = JwtService.signRefresh({
-      sub: user.id,
+      sub: user.ref_id,
       mobile: user.mobile,
       email: user.email,
     });
@@ -101,7 +101,7 @@ export async function login(req: FastifyRequest, reply: FastifyReply) {
     return reply.send({
       accessToken,
       refreshToken,
-      user: { id: user.id, mobile: user.mobile, email: user.email },
+      user: { id: user.ref_id, mobile: user.mobile, email: user.email },
     });
   } catch (e: any) {
     const code = e?.message === "OTP_WINDOW_EXPIRED" ? 401 : 401;
@@ -169,12 +169,12 @@ export async function signup(req: FastifyRequest, reply: FastifyReply) {
     });
 
     const accessToken = JwtService.signAccess({
-      sub: user.id,
+      sub: user.ref_id,
       mobile: user.mobile,
       email: user.email,
     });
     const refreshToken = JwtService.signRefresh({
-      sub: user.id,
+      sub: user.ref_id,
       mobile: user.mobile,
       email: user.email,
     });
@@ -182,7 +182,7 @@ export async function signup(req: FastifyRequest, reply: FastifyReply) {
     return reply.send({
       accessToken,
       refreshToken,
-      user: { id: user.id, email: user.email, mobile: user.mobile },
+      user: { id: user.ref_id, email: user.email, mobile: user.mobile },
     });
   } catch (e: any) {
     const msg = e?.message || "SIGNUP_FAILED";
@@ -198,13 +198,13 @@ export async function refreshToken(req: FastifyRequest, reply: FastifyReply) {
 
     // Optionally check user is still active
     const user = await prisma.users.findUnique({
-      where: { id: Number(payload.sub) },
+      where: { ref_id: payload.sub },
     });
     if (!user || !user.is_active)
       return reply.code(401).send({ error: "UNAUTHORIZED" });
 
     const accessToken = JwtService.signAccess({
-      sub: user.id,
+      sub: user.ref_id,
       mobile: user.mobile,
       email: user.email,
     });

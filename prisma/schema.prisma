@@ -56,7 +56,7 @@ model users {
   last_name            String        @db.VarChar(255)
   dob                  DateTime?     @db.Date
   gender               user_gender?
-  ref_id               String        @unique @db.Uuid
+  ref_id               String        @unique @db.Uuid @default(uuid())
   mobile_verified      Boolean       @default(false)
   email_verified       Boolean       @default(false)
   prefered_course_type Int?
@@ -83,7 +83,7 @@ model college_type {
 
 model college {
   id               Int        @id @default(autoincrement())
-  ref_id           String     @unique @db.Uuid
+  ref_id           String     @unique @db.Uuid @default(uuid())
   name             String     @db.VarChar(255)
   area             String     @db.VarChar(255)
   city             String     @db.VarChar(100)

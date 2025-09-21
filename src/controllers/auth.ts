@@ -77,7 +77,8 @@ export async function login(req: FastifyRequest, reply: FastifyReply) {
     console.log("Login body --------- ", req.body);
 
     if (mobile !== "0000000000") {
-      const uuidRegex = /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-5][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$/;
+      const uuidRegex =
+        /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-5][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$/;
       if (!uuidRegex.test(verificationId)) throw new Error("Invalid UUID");
 
       await assertLoginWindow(prisma, verificationId, mobile);
@@ -137,11 +138,13 @@ export async function signup(req: FastifyRequest, reply: FastifyReply) {
     };
 
     console.log("Sign Up body --------- ", req.body);
-      if(mobile !== "0000000000") {
-        const uuidRegex = /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-5][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$/;
-        if (!uuidRegex.test(verificationId)) throw new Error("Invalid UUID");
-      }
-      const rec = mobile === "0000000000"
+    if (mobile !== "0000000000") {
+      const uuidRegex =
+        /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-5][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$/;
+      if (!uuidRegex.test(verificationId)) throw new Error("Invalid UUID");
+    }
+    const rec =
+      mobile === "0000000000"
         ? { mobile: "0000000000" }
         : await assertSignupWindow(prisma, verificationId, mobile);
 
@@ -175,7 +178,6 @@ export async function signup(req: FastifyRequest, reply: FastifyReply) {
         first_name,
         last_name,
         prefered_course_type: course_type_id,
-        ref_id: crypto.randomUUID(),
         mobile_verified: true,
         email_verified: false,
       },
@@ -224,7 +226,7 @@ export async function refreshToken(req: FastifyRequest, reply: FastifyReply) {
       email: user.email,
     });
     return reply.send({ accessToken });
-  } catch(e: any) {
+  } catch (e: any) {
     console.log("Refresh Token error: ", e);
     return reply.code(401).send({ error: e?.message || "UNAUTHORIZED" });
   }

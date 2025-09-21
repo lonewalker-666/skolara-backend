@@ -16,8 +16,8 @@ export async function authGuard(req: FastifyRequest, reply: FastifyReply) {
       return reply.code(401).send({ error: 'UNAUTHORIZED' });
     }
     (req as any).user = payload; // attach
-  } catch {
-    return reply.code(401).send({ error: 'UNAUTHORIZED' });
+  } catch(e: any) {
+    return reply.code(401).send({ error: e?.message ?? 'UNAUTHORIZED' });
   }
 }
 

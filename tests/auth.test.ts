@@ -129,7 +129,7 @@ describe("login", () => {
     const user: User = {
       id: 7,
       ref_id: "user-ref-123",
-      mobile: "9999999999",
+      mobile: "0000000000",
       email: "a@b.com",
       mobile_verified: true,
       is_active: true,
@@ -197,7 +197,7 @@ describe("login", () => {
     const user: User = {
       id: 9,
       ref_id: "ref-9",
-      mobile: "8888888888",
+      mobile: "0000000000",
       email: "x@y.z",
       mobile_verified: false,
     };
@@ -262,7 +262,7 @@ describe("login", () => {
 describe("signup", () => {
   it("creates a new user, verifies mobile, and returns tokens", async () => {
     // assertSignupWindow resolves to normalized mobile
-    assertSignupWindow.mockResolvedValueOnce({ mobile: "9123456789" });
+    assertSignupWindow.mockResolvedValueOnce({ mobile: "0000000000" });
 
     // mobile does not exist
     prisma.users.findUnique
@@ -272,7 +272,7 @@ describe("signup", () => {
     const created: User = {
       id: 42,
       ref_id: "ref-42",
-      mobile: "9123456789",
+      mobile: "0000000000",
       email: "new@user.io",
       first_name: "New",
       last_name: "User",
@@ -287,8 +287,8 @@ describe("signup", () => {
     JwtService.signRefresh.mockReturnValueOnce("refresh-42");
 
     const req = makeReq({
-      verificationId: "11111111-2222-3333-4444-aaaaaaaaaaaa",
-      mobile: "9123456789",
+      verificationId: "ee9be107-3bd5-488c-8eb1-fbac5099c2d7",
+      mobile: "0000000000",
       first_name: "New",
       last_name: "User",
       email: "new@user.io",
@@ -297,7 +297,7 @@ describe("signup", () => {
     const reply = makeReply();
 
     const out = await signup(req, reply as any);
-
+console.log(out,"out");
     // Check that signup succeeded
     expect(reply.statusCode).toBe(200);
     

@@ -14,6 +14,7 @@ export async function sendOtpController(
   reply: FastifyReply
 ) {
   const { mobile } = req.body as { mobile: string };
+  console.log("Send otp body --------- ", req.body);
   try {
     if (mobile === "0000000000") {
       return reply.send({
@@ -36,6 +37,7 @@ export async function verifyOtpController(
 ) {
   try {
     const { mobile, otp } = req.body as { mobile: string; otp: string };
+    console.log("Verify otp body --------- ", req.body);
     if (mobile === "0000000000" && otp === "123456") {
       const user = await prisma.users.findUnique({
         where: { mobile, is_active: true },
@@ -70,6 +72,7 @@ export async function login(req: FastifyRequest, reply: FastifyReply) {
       verificationId: string;
       mobile: string;
     };
+    console.log("Login body --------- ", req.body);
 
     if (mobile !== "0000000000") {
       const uuidRegex = /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-5][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$/;
@@ -130,7 +133,7 @@ export async function signup(req: FastifyRequest, reply: FastifyReply) {
       course_type_id: number;
     };
 
-    
+    console.log("Sign Up body --------- ", req.body);
       if(mobile !== "0000000000") {
         const uuidRegex = /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-5][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$/;
         if (!uuidRegex.test(verificationId)) throw new Error("Invalid UUID");
@@ -200,6 +203,7 @@ export async function signup(req: FastifyRequest, reply: FastifyReply) {
 export async function refreshToken(req: FastifyRequest, reply: FastifyReply) {
   try {
     const { refreshToken } = req.body as { refreshToken: string };
+    console.log("Refresh Token body --------- ", req.body);
     const payload = JwtService.verifyRefresh(refreshToken);
     if (payload.type !== "refresh") throw new Error("INVALID_TOKEN");
 

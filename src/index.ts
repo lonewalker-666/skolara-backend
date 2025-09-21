@@ -12,6 +12,7 @@ import authRoutes from "./routes/auth.js";
 import path from "path";
 import { fileURLToPath } from "url";
 import userRoutes from "./routes/user.js";
+import collegeRoutes from "./routes/colleges.js";
 
 // ──────────────────────────────────────────────
 // Fastify instance
@@ -180,6 +181,7 @@ fastify.setErrorHandler((error, request, reply) => {
 await fastify.register(healthRoutes);
 await fastify.register(authRoutes, { prefix: "/api" });
 await fastify.register(userRoutes, { prefix: "/api" });
+await fastify.register(collegeRoutes, { prefix: "/api" });
 
 // ──────────────────────────────────────────────
 // Start server (skipped during tests)

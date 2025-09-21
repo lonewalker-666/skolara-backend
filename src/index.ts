@@ -11,6 +11,7 @@ import { healthRoutes } from "./routes/health.js";
 import authRoutes from "./routes/auth.js";
 import path from "path";
 import { fileURLToPath } from "url";
+import userRoutes from "./routes/user.js";
 
 // ──────────────────────────────────────────────
 // Fastify instance
@@ -178,6 +179,7 @@ fastify.setErrorHandler((error, request, reply) => {
 // Routes
 await fastify.register(healthRoutes);
 await fastify.register(authRoutes, { prefix: "/api" });
+await fastify.register(userRoutes, { prefix: "/api" });
 
 // ──────────────────────────────────────────────
 // Start server (skipped during tests)

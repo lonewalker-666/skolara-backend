@@ -84,7 +84,7 @@ export default async function authRoutes(app: FastifyInstance) {
           type: "object",
           required: ["verificationId", "mobile"],
           properties: {
-            verificationId: { type: "string", format: "uuid" },
+            verificationId: { type: "string"},
             mobile: { type: "string", pattern: "^[0-9]{10}$" },
           },
         },
@@ -109,7 +109,7 @@ export default async function authRoutes(app: FastifyInstance) {
             "course_type_id",
           ],
           properties: {
-            verificationId: { type: "string", format: "uuid" },
+            verificationId: { type: "string" },
             mobile: { type: "string", pattern: "^[0-9]{10}$" },
             first_name: { type: "string", minLength: 1 },
             last_name: { type: "string", minLength: 1 },

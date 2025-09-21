@@ -4,7 +4,7 @@ import 'fastify';
 declare module 'fastify' {
   interface FastifyRequest {
     user?: {
-      sub: string | number;
+      sub: string;
       mobile: string;
       email?: string | null;
       type: 'access';

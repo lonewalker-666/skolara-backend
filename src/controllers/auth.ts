@@ -72,6 +72,9 @@ export async function login(req: FastifyRequest, reply: FastifyReply) {
     };
 
     if (mobile !== "0000000000") {
+      const uuidRegex = /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-5][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$/;
+      if (!uuidRegex.test(verificationId)) throw new Error("Invalid UUID");
+
       await assertLoginWindow(prisma, verificationId, mobile);
     }
 
@@ -127,8 +130,12 @@ export async function signup(req: FastifyRequest, reply: FastifyReply) {
       course_type_id: number;
     };
 
-    const rec =
-      mobile === "0000000000"
+    
+      if(mobile !== "0000000000") {
+        const uuidRegex = /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-5][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$/;
+        if (!uuidRegex.test(verificationId)) throw new Error("Invalid UUID");
+      }
+      const rec = mobile === "0000000000"
         ? { mobile: "0000000000" }
         : await assertSignupWindow(prisma, verificationId, mobile);
 

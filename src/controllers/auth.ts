@@ -27,6 +27,7 @@ export async function sendOtpController(
     return reply.send({ verificationId, expiresAt, message: "OTP_SENT" });
   } catch (e: any) {
     const status = e?.statusCode ?? 400;
+    console.log("Send OTP error: ", e);
     return reply.code(status).send({ error: e?.message ?? "FAILED" });
   }
 }
@@ -62,6 +63,7 @@ export async function verifyOtpController(
     });
   } catch (e: any) {
     const code = e?.statusCode ?? 400;
+    console.log("Verify OTP error: ", e);
     return reply.code(code).send({ error: e?.message ?? "INVALID_OTP" });
   }
 }
@@ -110,6 +112,7 @@ export async function login(req: FastifyRequest, reply: FastifyReply) {
       user: { id: user.ref_id, mobile: user.mobile, email: user.email },
     });
   } catch (e: any) {
+    console.log("Login error: ", e);
     const code = e?.message === "OTP_WINDOW_EXPIRED" ? 401 : 401;
     return reply.code(code).send({ error: e?.message || "UNAUTHORIZED" });
   }
@@ -195,6 +198,7 @@ export async function signup(req: FastifyRequest, reply: FastifyReply) {
       user: { id: user.ref_id, email: user.email, mobile: user.mobile },
     });
   } catch (e: any) {
+    console.log("Sign Up error: ", e);
     const msg = e?.message || "SIGNUP_FAILED";
     return reply.code(400).send({ error: msg });
   }
@@ -220,7 +224,8 @@ export async function refreshToken(req: FastifyRequest, reply: FastifyReply) {
       email: user.email,
     });
     return reply.send({ accessToken });
-  } catch {
-    return reply.code(401).send({ error: "UNAUTHORIZED" });
+  } catch(e: any) {
+    console.log("Refresh Token error: ", e);
+    return reply.code(401).send({ error: e?.message || "UNAUTHORIZED" });
   }
 }

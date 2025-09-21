@@ -1,6 +1,7 @@
 import { check } from "zod/v4";
 import { prisma } from "../db/client";
 import { FastifyReply, FastifyRequest } from "fastify";
+import { c } from "vitest/dist/reporters-5f784f42.js";
 
 export async function getColleges(
   request: FastifyRequest,
@@ -38,6 +39,7 @@ export async function getCategory(
 
     return reply.send(colleges);
   } catch (e: any) {
+    console.log("getCategory error --------- ", e);
     return reply
       .status(400)
       .send({ message: e?.message || "Internal Server Error" });
@@ -106,6 +108,7 @@ export async function saveCollege(
       saved: true,
     });
   } catch (e: any) {
+    console.log("saveCollege error --------- ", e);
     return reply
       .status(400)
       .send({ message: e?.message || "Internal Server Error" });

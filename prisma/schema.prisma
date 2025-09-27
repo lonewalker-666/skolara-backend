@@ -10,6 +10,8 @@ generator client {
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+  schemas   = ["development"]
 }
 
 // -------------------------- Enums --------------------------
@@ -18,21 +20,25 @@ enum user_gender {
   Male
   Female
   Others
+  @@schema("development")
 }
 
 enum user_theme {
   Light
   Dark
+  @@schema("development")
 }
 
 enum currency_type {
   INR
+  @@schema("development")
 }
 
 enum billing_cycle_type {
   Yearly
   Semester
   Monthly
+  @@schema("development")
 }
 
 enum order_status_type {
@@ -40,10 +46,12 @@ enum order_status_type {
   Cancelled
   Failed
   Paid
+  @@schema("development")
 }
 
 enum payment_provider {
   RazorPay
+  @@schema("development")
 }
 
 // -------------------------- Models --------------------------
@@ -70,6 +78,7 @@ model users {
   saved_colleges       saved_colleges[]
   applied_colleges     applied_colleges[]
   orders               orders[]   
+  @@schema("development")
 }
 
 model college_type {
@@ -79,6 +88,7 @@ model college_type {
   updated_at DateTime  @default(now()) @updatedAt @db.Timestamptz(6)
 
   colleges   college[]
+  @@schema("development")
 }
 
 model college {
@@ -106,6 +116,7 @@ model college {
   top_recruiters   top_recruiters[]
   placement_stats  college_placement_stats[]
   placement_cell   placement_cell_info[]
+  @@schema("development")
 }
 
 model degree_type {
@@ -116,6 +127,7 @@ model degree_type {
   updated_at DateTime @default(now()) @updatedAt @db.Timestamptz(6)
 
   degrees    degree[]
+  @@schema("development")
 }
 
 model degree {
@@ -134,6 +146,7 @@ model degree {
   
   @@index([name])
   @@unique([name,specialization])
+  @@schema("development")
 }
 
 model college_degree_fee_range {
@@ -159,6 +172,7 @@ model college_degree_fee_range {
 @@index([degree_id])
 @@unique([college_id, degree_id, academic_year])
 
+  @@schema("development")
 }
 
 model hostel_sharing_type {
@@ -169,6 +183,7 @@ model hostel_sharing_type {
 
   facilities hostel_facility[]
 
+  @@schema("development")
 }
 
 model hostel_facility {
@@ -191,6 +206,7 @@ model hostel_facility {
 
   @@index([college_id])
   @@unique([college_id,hostel_sharing_type_id,gender,ac])
+  @@schema("development")
 }
 
 model entrance_exam {
@@ -200,6 +216,7 @@ model entrance_exam {
   updated_at DateTime  @default(now()) @updatedAt @db.Timestamptz(6)
 
   eligibility eligibility_criteria[]
+  @@schema("development")
 }
 
 model eligibility_criteria {
@@ -208,8 +225,8 @@ model eligibility_criteria {
   degree_id       Int
   criteria        String?   @db.Text
   entrance_exam_id Int?
-  min_percentage  Decimal?  @db.Decimal(3, 2)
-  max_percentage  Decimal?  @db.Decimal(3, 2)
+  min_percentage  Decimal?  @db.Decimal(5, 2)
+  max_percentage  Decimal?  @db.Decimal(5, 2)
   created_at      DateTime  @default(now()) @db.Timestamptz(6)
   updated_at      DateTime  @default(now()) @updatedAt @db.Timestamptz(6)
 
@@ -221,6 +238,7 @@ model eligibility_criteria {
   @@index([college_id])
   @@index([degree_id])
   @@unique([college_id,degree_id])
+  @@schema("development")
 }
 
 model saved_colleges {
@@ -238,6 +256,7 @@ model saved_colleges {
   @@index([college_id])
   @@index([user_id])
   @@unique([college_id,user_id])
+  @@schema("development")
 }
 
 model application_status {
@@ -248,6 +267,7 @@ model application_status {
 
   tracks     application_tracking[]
 
+  @@schema("development")
 }
 
 model applied_colleges {
@@ -266,6 +286,7 @@ model applied_colleges {
   @@index([college_id])
   @@index([user_id])
   @@index([college_id,user_id])
+  @@schema("development")
 }
 
 model application_tracking {
@@ -284,6 +305,7 @@ model application_tracking {
   @@index([application_id])
   @@index([application_status_id])
   @@unique([application_id,application_status_id])
+  @@schema("development")
 }
 
 model top_recruiters {
@@ -295,6 +317,7 @@ model top_recruiters {
 
   college    college  @relation(fields: [college_id], references: [id], onDelete: Cascade)
 
+  @@schema("development")
 }
 
 model college_placement_stats {
@@ -311,6 +334,7 @@ model college_placement_stats {
 
   @@index([college_id])
   @@unique([college_id, year])
+  @@schema("development")
 }
 
 model placement_cell_info {
@@ -323,6 +347,7 @@ model placement_cell_info {
   college     college  @relation(fields: [college_id], references: [id], onDelete: Cascade)
 
   @@index([college_id])
+  @@schema("development")
 }
 
 model orders {
@@ -346,6 +371,7 @@ model orders {
   @@index([application_id])
   @@index([status])
   @@index([user_id])
+  @@schema("development")
 }
 
 model payments {
@@ -368,6 +394,7 @@ model payments {
   
   @@index([status])
   @@index([order_id])
+  @@schema("development")
 }
 
 model otp_verification {
@@ -383,4 +410,5 @@ model otp_verification {
 
   @@index([mobile,is_active])
   @@index([mobile, created_at])  // helps hourly-rate queries
+  @@schema("development")
 }

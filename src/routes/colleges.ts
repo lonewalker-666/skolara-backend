@@ -1,17 +1,22 @@
 import { FastifyInstance } from "fastify";
 import { authGuard } from "../services/authGuard";
-import { getCategory, saveCollege } from "../controllers/colleges";
+import { getCategory, getCollegeById, getColleges, saveCollege } from "../controllers/colleges";
 
 export default async function collegeRoutes(app: FastifyInstance) {
   app.get(
     "/colleges",
     {
-      schema: {},
+      schema: {
+        querystring: {
+          type: "object",
+          properties: {
+            category: { type: "number" },
+          },
+        },
+      },
       preHandler: [authGuard],
     },
-    async (request, reply) => {
-      return { message: "List of colleges" };
-    }
+    getColleges
   );
 
   app.get(
@@ -20,9 +25,7 @@ export default async function collegeRoutes(app: FastifyInstance) {
       schema: {},
       preHandler: [authGuard],
     },
-    async (request, reply) => {
-      return { message: "List of colleges" };
-    }
+    getCollegeById
   );
 
   app.get(

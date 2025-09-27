@@ -1,14 +1,60 @@
-import { check } from "zod/v4";
 import { prisma } from "../db/client";
 import { FastifyReply, FastifyRequest } from "fastify";
-import { c } from "vitest/dist/reporters-5f784f42.js";
+import  toHttpError from "../utils/toHttpError";
 
 export async function getColleges(
   request: FastifyRequest,
   reply: FastifyReply
 ) {
-  const colleges = await prisma.college.findMany();
-  return reply.send(colleges);
+  try {
+    const { category } = request.query as { category: string };
+
+    const user = request.user;
+    if (!user) {
+      return reply.status(401).send({ error: "Unauthorized" });
+    }
+
+    console.log("getColleges query --------- ", request.query);
+
+    const checkUser = await prisma.users.findUnique({
+      where: { ref_id: user.sub },
+      select: { id: true },
+    });
+    if (!checkUser) {
+      return reply.status(401).send({ error: "Unauthorized" });
+    }
+
+    const where = category ? { college_type_id: Number(category) } : undefined;
+    const colleges = await prisma.college.findMany({
+      where: where,
+      orderBy: { name: "asc" },
+      select: {
+        ref_id: true,
+        name: true,
+        area: true,
+        city: true,
+        logo_url: true,
+        applied_by: {
+          where: { user_id: checkUser.id, is_active: true },
+        },
+      },
+    });
+    const list = colleges.map((college) => {
+      return {
+        id: college.ref_id,
+        name: college.name,
+        area: college.area,
+        city: college.city,
+        logo_url: college.logo_url,
+        is_applied: college.applied_by.length > 0,
+      };
+    });
+    return reply.send(list);
+  } catch (e: any) {
+    console.log("getColleges error --------- ", e);
+    const { status, payload } = toHttpError(e);
+    return reply.status(status).send(payload);
+  }
 }
 
 export async function getCollegeById(
@@ -16,13 +62,73 @@ export async function getCollegeById(
   reply: FastifyReply
 ) {
   const { id } = request.params as { id: string };
+      const user = request.user;
+    if (!user) {
+      return reply.status(401).send({ error: "Unauthorized" });
+    }
+
+    console.log("getCollege BY ID params --------- ", request.params);
+
+    const checkUser = await prisma.users.findUnique({
+      where: { ref_id: user.sub },
+      select: { id: true },
+    });
+    if (!checkUser) {
+      return reply.status(401).send({ error: "Unauthorized" });
+    }
+
   const college = await prisma.college.findUnique({
     where: { ref_id: id },
+    select: {
+      ref_id: true,
+      name: true,
+      area: true,
+      city: true,
+      logo_url: true,
+      cover_url: true,
+      description: true,
+      deadline: true,
+      eligibility: {
+      select: {
+        id: true,
+        criteria: true,
+        min_percentage: true,
+        max_percentage:true,
+        degree: {
+          select: {
+            id: true,
+            name: true,
+            specialization: true,
+          },
+        },
+        entrance_exam: { select: { id: true, name: true } },
+      },
+      orderBy: { id: 'asc' },
+    },
+      saved_by: {
+        where: { user_id: checkUser.id, deleted_at: null },
+      },
+      applied_by: {
+        where: { user_id: checkUser.id, is_active: true },
+      },
+    },
   });
   if (!college) {
     return reply.status(404).send({ message: "College not found" });
   }
-  return reply.send(college);
+  return reply.send({
+    id: college.ref_id,
+    name: college.name,
+    area: college.area,
+    city: college.city,
+    logo_url: college.logo_url,
+    cover_url: college.cover_url,
+    is_saved: college.saved_by.length > 0,
+    is_applied: college.applied_by.length > 0,
+    description: college.description,
+    deadline: college.deadline,
+    eligibility: college.eligibility,
+  });
 }
 
 export async function getCategory(
@@ -40,9 +146,8 @@ export async function getCategory(
     return reply.send(colleges);
   } catch (e: any) {
     console.log("getCategory error --------- ", e);
-    return reply
-      .status(400)
-      .send({ message: e?.message || "Internal Server Error" });
+    const { status, payload } = toHttpError(e);
+    return reply.status(status).send(payload);
   }
 }
 
@@ -93,7 +198,7 @@ export async function saveCollege(
         message: existing.deleted_at
           ? "College saved"
           : "College removed from saved",
-        saved: !existing.deleted_at,
+        saved: existing.deleted_at ? true : false,
       });
     }
 
@@ -109,8 +214,7 @@ export async function saveCollege(
     });
   } catch (e: any) {
     console.log("saveCollege error --------- ", e);
-    return reply
-      .status(400)
-      .send({ message: e?.message || "Internal Server Error" });
+    const { status, payload } = toHttpError(e);
+    return reply.status(status).send(payload);
   }
 }

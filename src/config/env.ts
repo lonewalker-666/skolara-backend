@@ -23,6 +23,8 @@ const envSchema = z.object({
   OTP_TTL_SECONDS: z.string().transform(Number).default('300'),
   OTP_MAX_VERIFY_ATTEMPTS: z.string().transform(Number).default('5'),
   OTP_MAX_PER_HOUR: z.string().transform(Number).default('5'),
+  SMS_API_KEY: z.string().length(16),
+  SMS_SENDER_ID: z.string().min(3).max(11),
 });
 
 export const env = envSchema.parse(process.env);

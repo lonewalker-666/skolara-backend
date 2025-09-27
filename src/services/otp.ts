@@ -38,9 +38,10 @@ export async function sendOtp (prisma: PrismaClient, mobile: string) {
   try {
     const response = await sendSms(
       mobile,
-      `Your Skolara OTP is ${otp}. It expires in ${Math.floor(
-        OTP_TTL_SECONDS / 60
-      )} min.`
+      // `Your Skolara OTP is ${otp}. It expires in ${Math.floor(
+      //   OTP_TTL_SECONDS / 60
+      // )} min.`
+      `Use OTP ${otp} to log in to your Account. Never share your OTP with anyone . Support contact: Skolara - My Dreams`
     )
     console.log('SMS response:', response)
     return { verificationId: rec.id, expiresAt: rec.expires_at, response }

@@ -1,6 +1,7 @@
 import { prisma } from "../db/client";
 import { FastifyReply, FastifyRequest } from "fastify";
 import { updateUserProfileSchema } from "../schemas/user";
+import toHttpError from "../utils/toHttpError";
 
 export async function getUserProfile(req: FastifyRequest, reply: FastifyReply) {
   try {
@@ -41,8 +42,8 @@ export async function getUserProfile(req: FastifyRequest, reply: FastifyReply) {
     return reply.send(profileData);
   } catch (e: any) {
     console.log("getUserProfile error --------- ", e);
-    const status = e?.statusCode ?? 400;
-    return reply.code(status).send({ error: e?.message ?? "FAILED" });
+    const { status, payload } = toHttpError(e);
+    return reply.status(status).send(payload);
   }
 }
 
@@ -83,11 +84,12 @@ export async function updateUserProfile(
 
     return reply.send({ message: "Profile updated successfully" });
   } catch (e: any) {
-    const status = e?.statusCode ?? 400;
     console.log("updateUserProfile error --------- ", e);
-    if (e?.message?.includes("Unique constraint failed")) {
+
+    const { status, payload } = toHttpError(e);
+    if (status === 409) {
       return reply.code(400).send({ error: "Email or Mobile already exists" });
     }
-    return reply.code(status).send({ error: e?.message ?? "FAILED" });
+    return reply.status(status).send(payload);
   }
 }

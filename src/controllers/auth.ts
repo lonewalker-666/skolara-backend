@@ -9,10 +9,11 @@ import {
   verifyOtp,
 } from "../services/otp";
 import toHttpError from "../utils/toHttpError";
+import HttpError from "../utils/httpError";
 
 export async function sendOtpController(
   req: FastifyRequest,
-  reply: FastifyReply
+  reply: FastifyReply,
 ) {
   const { mobile } = req.body as { mobile: string };
   console.log("Send otp body --------- ", req.body);
@@ -28,14 +29,14 @@ export async function sendOtpController(
     return reply.send({ verificationId, expiresAt, message: "OTP_SENT" });
   } catch (e: any) {
     console.log("Send OTP error: ", e);
-     const { status, payload } = toHttpError(e);
-        return reply.status(status).send(payload);
+    const { status, payload } = toHttpError(e);
+    return reply.status(status).send(payload);
   }
 }
 
 export async function verifyOtpController(
   req: FastifyRequest,
-  reply: FastifyReply
+  reply: FastifyReply,
 ) {
   try {
     const { mobile, otp } = req.body as { mobile: string; otp: string };
@@ -64,7 +65,7 @@ export async function verifyOtpController(
     });
   } catch (e: any) {
     console.log("Verify OTP error: ", e);
-     const { status, payload } = toHttpError(e);
+    const { status, payload } = toHttpError(e);
     return reply.status(status).send(payload);
   }
 }
@@ -80,7 +81,8 @@ export async function login(req: FastifyRequest, reply: FastifyReply) {
     if (mobile !== "0000000000") {
       const uuidRegex =
         /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-5][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$/;
-      if (!uuidRegex.test(verificationId)) throw new Error("Invalid UUID");
+      if (!uuidRegex.test(verificationId))
+        throw new HttpError("Invalid UUID", 401);
 
       await assertLoginWindow(prisma, verificationId, mobile);
     }
@@ -88,7 +90,7 @@ export async function login(req: FastifyRequest, reply: FastifyReply) {
     // find or create user by mobile (mobile is unique in model)
     let user = await prisma.users.findUnique({ where: { mobile } });
     if (!user) {
-      throw new Error(errorCodes.USER_NOT_FOUND);
+      throw new HttpError(errorCodes.USER_NOT_FOUND, 404);
     }
     if (!user.mobile_verified) {
       await prisma.users.update({
@@ -115,7 +117,7 @@ export async function login(req: FastifyRequest, reply: FastifyReply) {
     });
   } catch (e: any) {
     console.log("Login error: ", e);
-     const { status, payload } = toHttpError(e);
+    const { status, payload } = toHttpError(e);
     return reply.status(status).send(payload);
   }
 }
@@ -142,7 +144,8 @@ export async function signup(req: FastifyRequest, reply: FastifyReply) {
     if (mobile !== "0000000000") {
       const uuidRegex =
         /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-5][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$/;
-      if (!uuidRegex.test(verificationId)) throw new Error("Invalid UUID");
+      if (!uuidRegex.test(verificationId))
+        throw new HttpError("Invalid UUID", 401);
     }
     const rec =
       mobile === "0000000000"
@@ -212,7 +215,7 @@ export async function refreshToken(req: FastifyRequest, reply: FastifyReply) {
     const { refreshToken } = req.body as { refreshToken: string };
     console.log("Refresh Token body --------- ", req.body);
     const payload = JwtService.verifyRefresh(refreshToken);
-    if (payload.type !== "refresh") throw new Error("INVALID_TOKEN");
+    if (payload.type !== "refresh") throw new HttpError("UNAUTHORIZED", 401);
 
     // Optionally check user is still active
     const user = await prisma.users.findUnique({
@@ -229,7 +232,7 @@ export async function refreshToken(req: FastifyRequest, reply: FastifyReply) {
     return reply.send({ accessToken });
   } catch (e: any) {
     console.log("Refresh Token error: ", e);
-     const { status, payload } = toHttpError(e);
+    const { status, payload } = toHttpError(e);
     return reply.status(status).send(payload);
   }
 }

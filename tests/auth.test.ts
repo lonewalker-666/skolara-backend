@@ -2,6 +2,7 @@
 import { describe, it, expect, beforeEach, vi, afterEach } from "vitest";
 
 import { login, signup, refreshToken } from "../src/controllers/auth";
+import HttpError from "../src/utils/httpError";
 
 // Mock console.error to avoid noise in tests
 const consoleMock = vi.spyOn(console, 'error').mockImplementation(() => {});
@@ -433,7 +434,7 @@ console.log(out,"out");
   it("returns 400 on unexpected error", async () => {
     // Use a proper UUID for the verification ID to avoid validation errors
     const validUuid = "a1234567-b123-c123-d123-e12345678901";
-    assertSignupWindow.mockRejectedValueOnce(new Error("WINDOW_ERROR"));
+    assertSignupWindow.mockRejectedValueOnce(new HttpError("Unexpected error", 400));
 
     const reply = makeReply();
     await signup(
@@ -498,7 +499,7 @@ describe("refreshToken", () => {
 
   it("rejects when refresh token invalid", async () => {
     JwtService.verifyRefresh.mockImplementationOnce(() => {
-      throw new Error("bad");
+      throw new HttpError("UNAUTHORIZED", 401);
     });
 
     const reply = makeReply();

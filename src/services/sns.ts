@@ -55,10 +55,10 @@ export async function sendSms(mobile: string, message: string) {
         message: message,
       },
     });
-if(response.data.status !== 'Success'){
-  console.log("SNS sendSms response:", response);
-  throw new HttpError('Send SMS failed', 400);
-}
+    if (response.data.status !== "Success") {
+      console.log("SNS sendSms response:", response);
+      throw new HttpError("Send SMS failed", 400);
+    }
     return response;
   } catch (err) {
     console.error("SNS sendSms error:", err);

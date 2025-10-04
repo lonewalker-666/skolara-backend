@@ -1,20 +1,24 @@
 import { prisma } from "../db/client";
 import { FastifyReply, FastifyRequest } from "fastify";
-import  toHttpError from "../utils/toHttpError";
+import toHttpError from "../utils/toHttpError";
+import { Prisma } from "@prisma/client";
 
 export async function getColleges(
   request: FastifyRequest,
-  reply: FastifyReply
+  reply: FastifyReply,
 ) {
   try {
-    const { category } = request.query as { category: string };
+    // Accept both ?search= and ?name= as the search term (name is an alias)
+    const { category, search, name } = request.query as {
+      category?: string;
+      search?: string;
+      name?: string; // alias for search
+    };
 
     const user = request.user;
     if (!user) {
       return reply.status(401).send({ error: "Unauthorized" });
     }
-
-    console.log("getColleges query --------- ", request.query);
 
     const checkUser = await prisma.users.findUnique({
       where: { ref_id: user.sub },
@@ -24,9 +28,34 @@ export async function getColleges(
       return reply.status(401).send({ error: "Unauthorized" });
     }
 
-    const where = category ? { college_type_id: Number(category) } : undefined;
+    // prefer ?search= but fall back to ?name=
+    const qRaw = (search ?? name ?? "").trim();
+    const hasQ = qRaw.length > 0;
+
+    // category validation
+    const cat =
+      typeof category !== "undefined" && category !== ""
+        ? Number(category)
+        : undefined;
+
+    if (category !== undefined && !Number.isFinite(cat)) {
+      return reply.status(400).send({ error: "Invalid 'category' value" });
+    }
+
+    const where: Prisma.collegeWhereInput = {
+      ...(cat !== undefined ? { college_type_id: cat } : {}),
+      ...(hasQ
+        ? {
+            OR: [
+              { name: { startsWith: qRaw, mode: "insensitive" } },
+              { short_name: { contains: qRaw, mode: "insensitive" } },
+            ],
+          }
+        : {}),
+    };
+
     const colleges = await prisma.college.findMany({
-      where: where,
+      where,
       orderBy: { name: "asc" },
       select: {
         ref_id: true,
@@ -36,19 +65,20 @@ export async function getColleges(
         logo_url: true,
         applied_by: {
           where: { user_id: checkUser.id, is_active: true },
+          select: { id: true },
         },
       },
     });
-    const list = colleges.map((college) => {
-      return {
-        id: college.ref_id,
-        name: college.name,
-        area: college.area,
-        city: college.city,
-        logo_url: college.logo_url,
-        is_applied: college.applied_by.length > 0,
-      };
-    });
+
+    const list = colleges.map((college) => ({
+      id: college.ref_id,
+      name: college.name,
+      area: college.area,
+      city: college.city,
+      logo_url: college.logo_url,
+      is_applied: college.applied_by.length > 0,
+    }));
+
     return reply.send(list);
   } catch (e: any) {
     console.log("getColleges error --------- ", e);
@@ -59,23 +89,23 @@ export async function getColleges(
 
 export async function getCollegeById(
   request: FastifyRequest,
-  reply: FastifyReply
+  reply: FastifyReply,
 ) {
   const { id } = request.params as { id: string };
-      const user = request.user;
-    if (!user) {
-      return reply.status(401).send({ error: "Unauthorized" });
-    }
+  const user = request.user;
+  if (!user) {
+    return reply.status(401).send({ error: "Unauthorized" });
+  }
 
-    console.log("getCollege BY ID params --------- ", request.params);
+  console.log("getCollege BY ID params --------- ", request.params);
 
-    const checkUser = await prisma.users.findUnique({
-      where: { ref_id: user.sub },
-      select: { id: true },
-    });
-    if (!checkUser) {
-      return reply.status(401).send({ error: "Unauthorized" });
-    }
+  const checkUser = await prisma.users.findUnique({
+    where: { ref_id: user.sub },
+    select: { id: true },
+  });
+  if (!checkUser) {
+    return reply.status(401).send({ error: "Unauthorized" });
+  }
 
   const college = await prisma.college.findUnique({
     where: { ref_id: id },
@@ -89,22 +119,20 @@ export async function getCollegeById(
       description: true,
       deadline: true,
       eligibility: {
-      select: {
-        id: true,
-        criteria: true,
-        min_percentage: true,
-        max_percentage:true,
-        degree: {
-          select: {
-            id: true,
-            name: true,
-            specialization: true,
-          },
+        select: {
+          id: true,
+          criteria_type: true,
+          criteria: true,
         },
-        entrance_exam: { select: { id: true, name: true } },
+        orderBy: { id: "asc" },
       },
-      orderBy: { id: 'asc' },
-    },
+      scholarships: {
+        select: {
+          id: true,
+          schemes: true,
+        },
+        orderBy: { id: "asc" },
+      },
       saved_by: {
         where: { user_id: checkUser.id, deleted_at: null },
       },
@@ -116,6 +144,7 @@ export async function getCollegeById(
   if (!college) {
     return reply.status(404).send({ message: "College not found" });
   }
+  console.log("getCollege BY ID --------- ", college);
   return reply.send({
     id: college.ref_id,
     name: college.name,
@@ -128,12 +157,13 @@ export async function getCollegeById(
     description: college.description,
     deadline: college.deadline,
     eligibility: college.eligibility,
+    scholarships: college.scholarships,
   });
 }
 
 export async function getCategory(
   request: FastifyRequest,
-  reply: FastifyReply
+  reply: FastifyReply,
 ) {
   try {
     const colleges = await prisma.college_type.findMany({
@@ -153,7 +183,7 @@ export async function getCategory(
 
 export async function saveCollege(
   request: FastifyRequest,
-  reply: FastifyReply
+  reply: FastifyReply,
 ) {
   try {
     const user = request.user;
@@ -218,3 +248,68 @@ export async function saveCollege(
     return reply.status(status).send(payload);
   }
 }
+
+export const getSavedColleges = async (
+  request: FastifyRequest,
+  reply: FastifyReply,
+) => {
+  try {
+    const user = request.user;
+    if (!user) {
+      return reply.status(401).send({ error: "Unauthorized" });
+    }
+    console.log("getSavedColleges body --------- ", request.body);
+
+    const dbUser = await prisma.users.findUnique({
+      where: { ref_id: user.sub },
+      select: { id: true, ref_id: true },
+    });
+
+    if (!dbUser) {
+      return reply.status(401).send({ error: "Unauthorized" });
+    }
+
+    const savedColleges = await prisma.saved_colleges.findMany({
+      where: {
+        user_id: dbUser.id,
+        deleted_at: null,
+      },
+      select: {
+        college: {
+          select: {
+            ref_id: true,
+            name: true,
+            area: true,
+            city: true,
+            logo_url: true,
+            applied_by: {
+              select: {
+                user_id: true,
+                is_active: true,
+              },
+            },
+          },
+        },
+      },
+    });
+
+    const list = savedColleges.map((college) => {
+      return {
+        id: college.college.ref_id,
+        name: college.college.name,
+        area: college.college.area,
+        city: college.college.city,
+        logo_url: college.college.logo_url,
+        is_applied: college.college.applied_by.length > 0,
+      };
+    });
+
+    return reply.status(200).send(list);
+  } catch (e: any) {
+    console.log("getSavedColleges error --------- ", e);
+    const { status, payload } = toHttpError(e);
+    return reply.status(status).send(payload);
+  }
+};
+
+

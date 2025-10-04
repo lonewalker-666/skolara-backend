@@ -4,16 +4,16 @@ import { authGuard } from "../services/authGuard";
 
 export default async function userRoutes(app: FastifyInstance) {
   app.get(
-    "/user/profile",
+    "/profile",
     {
       schema: {},
       preHandler: [authGuard],
     },
-    getUserProfile
+    getUserProfile,
   );
 
   app.put(
-    "/user/profile",
+    "/profile",
     {
       schema: {
         body: {
@@ -42,6 +42,6 @@ export default async function userRoutes(app: FastifyInstance) {
       },
       preHandler: [authGuard],
     },
-    updateUserProfile
+    updateUserProfile,
   );
 }

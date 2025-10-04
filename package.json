@@ -14,6 +14,7 @@
     "migrate:dev": "prisma migrate dev",
     "reset": "prisma migrate reset",
     "generate": "prisma generate",
+    "prisma:format": "prisma format",
     "lint": "eslint src/**/*.ts",
     "format": "prettier --write src/**/*.ts",
     "seed": "tsx prisma/seeders/seed.ts",
@@ -33,6 +34,7 @@
     "pino": "^8.16.2",
     "pino-pretty": "^10.2.3",
     "rate-limiter-flexible": "^3.0.6",
+    "supabase": "^2.47.2",
     "zod": "^3.22.4",
     "zod-to-json-schema": "^3.24.6"
   },

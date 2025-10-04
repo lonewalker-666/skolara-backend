@@ -10,7 +10,7 @@ import {
 export default async function authRoutes(app: FastifyInstance) {
   // Send OTP
   app.post(
-    "/auth/otp/send",
+    "/otp/send",
     {
       schema: {
         body: {
@@ -34,12 +34,12 @@ export default async function authRoutes(app: FastifyInstance) {
         },
       },
     },
-    sendOtp
+    sendOtp,
   );
 
   // Verify OTP
   app.post(
-    "/auth/otp/verify",
+    "/otp/verify",
     {
       schema: {
         // tags: ['Authentication'],
@@ -72,30 +72,30 @@ export default async function authRoutes(app: FastifyInstance) {
         },
       },
     },
-    verifyOtp
+    verifyOtp,
   );
 
   // Login (after verify, within 30s)
   app.post(
-    "/auth/login",
+    "/login",
     {
       schema: {
         body: {
           type: "object",
           required: ["verificationId", "mobile"],
           properties: {
-            verificationId: { type: "string"},
+            verificationId: { type: "string" },
             mobile: { type: "string", pattern: "^[0-9]{10}$" },
           },
         },
       },
     },
-    login
+    login,
   );
 
   // Signup (within 8 minutes after verify)
   app.post(
-    "/auth/signup",
+    "/signup",
     {
       schema: {
         body: {
@@ -119,12 +119,12 @@ export default async function authRoutes(app: FastifyInstance) {
         },
       },
     },
-    signup
+    signup,
   );
 
   // Exchange refresh token for new access token
   app.post(
-    "/auth/token",
+    "/token",
     {
       schema: {
         body: {
@@ -134,6 +134,6 @@ export default async function authRoutes(app: FastifyInstance) {
         },
       },
     },
-    refreshToken
+    refreshToken,
   );
 }

@@ -49,7 +49,7 @@ export async function getUserProfile(req: FastifyRequest, reply: FastifyReply) {
 
 export async function updateUserProfile(
   req: FastifyRequest,
-  reply: FastifyReply
+  reply: FastifyReply,
 ) {
   try {
     const user = req.user;

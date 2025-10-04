@@ -3,22 +3,23 @@
   "info": {
     "title": "Skolara API",
     "description": "Backend for searching colleges, managing applications, and processing payments.",
-    "version": "1.0.0",
-    "base_url": "http://localhost:8000"
+    "version": "1.0.0"
   },
+  "servers": [{ "url": "http://localhost:8000/api" }],
   "tags": [
-    {
-      "name": "Health",
-      "description": "Service health checks"
-    },
+    { "name": "Health", "description": "Service health checks" },
     {
       "name": "Auth",
       "description": "OTP, login, signup, and token endpoints"
-    }
+    },
+    { "name": "Colleges", "description": "Colleges and colleges search" },
+    { "name": "User", "description": "User Management" }
   ],
+  "security": [{ "bearerAuth": [] }],
   "paths": {
     "/health": {
       "get": {
+        "security": [],
         "tags": ["Health"],
         "summary": "Health check",
         "operationId": "getHealth",
@@ -27,16 +28,8 @@
             "description": "Service is healthy",
             "content": {
               "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HealthResponse"
-                },
-                "examples": {
-                  "ok": {
-                    "value": {
-                      "status": "ok"
-                    }
-                  }
-                }
+                "schema": { "$ref": "#/components/schemas/HealthResponse" },
+                "examples": { "ok": { "value": { "status": "ok" } } }
               }
             }
           }
@@ -45,6 +38,7 @@
     },
     "/auth/otp/send": {
       "post": {
+        "security": [],
         "tags": ["Auth"],
         "summary": "Send OTP to a mobile number",
         "operationId": "sendOtp",
@@ -52,16 +46,8 @@
           "required": true,
           "content": {
             "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/OtpSendRequest"
-              },
-              "examples": {
-                "default": {
-                  "value": {
-                    "mobile": "9876543210"
-                  }
-                }
-              }
+              "schema": { "$ref": "#/components/schemas/OtpSendRequest" },
+              "examples": { "default": { "value": { "mobile": "9876543210" } } }
             }
           }
         },
@@ -70,9 +56,7 @@
             "description": "OTP created and SMS dispatched",
             "content": {
               "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/OtpSendResponse"
-                },
+                "schema": { "$ref": "#/components/schemas/OtpSendResponse" },
                 "examples": {
                   "sent": {
                     "value": {
@@ -89,16 +73,8 @@
             "description": "Failed to create/send OTP",
             "content": {
               "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
-                },
-                "examples": {
-                  "generic": {
-                    "value": {
-                      "error": "FAILED"
-                    }
-                  }
-                }
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" },
+                "examples": { "generic": { "value": { "error": "FAILED" } } }
               }
             }
           },
@@ -117,6 +93,7 @@
     },
     "/auth/otp/verify": {
       "post": {
+        "security": [],
         "tags": ["Auth"],
         "summary": "Verify OTP for a mobile number",
         "operationId": "verifyOtp",
@@ -124,15 +101,10 @@
           "required": true,
           "content": {
             "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/OtpVerifyRequest"
-              },
+              "schema": { "$ref": "#/components/schemas/OtpVerifyRequest" },
               "examples": {
                 "default": {
-                  "value": {
-                    "mobile": "9876543210",
-                    "otp": "123456"
-                  }
+                  "value": { "mobile": "9876543210", "otp": "123456" }
                 }
               }
             }
@@ -143,9 +115,7 @@
             "description": "OTP verified",
             "content": {
               "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/OtpVerifyResponse"
-                },
+                "schema": { "$ref": "#/components/schemas/OtpVerifyResponse" },
                 "examples": {
                   "verified": {
                     "value": {
@@ -163,15 +133,9 @@
             "description": "Invalid/expired OTP or attempts exceeded",
             "content": {
               "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
-                },
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" },
                 "examples": {
-                  "invalid": {
-                    "value": {
-                      "error": "INVALID_OTP"
-                    }
-                  }
+                  "invalid": { "value": { "error": "INVALID_OTP" } }
                 }
               }
             }
@@ -191,6 +155,7 @@
     },
     "/auth/login": {
       "post": {
+        "security": [],
         "tags": ["Auth"],
         "summary": "Login after OTP verify (within 30 seconds)",
         "operationId": "loginWithOtp",
@@ -198,9 +163,7 @@
           "required": true,
           "content": {
             "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/LoginRequest"
-              },
+              "schema": { "$ref": "#/components/schemas/LoginRequest" },
               "examples": {
                 "default": {
                   "value": {
@@ -217,9 +180,7 @@
             "description": "Login successful",
             "content": {
               "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/AuthTokensWithUser"
-                }
+                "schema": { "$ref": "#/components/schemas/AuthTokensWithUser" }
               }
             }
           },
@@ -227,25 +188,11 @@
             "description": "Unauthorized or OTP window expired",
             "content": {
               "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
-                },
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" },
                 "examples": {
-                  "expired": {
-                    "value": {
-                      "error": "OTP_WINDOW_EXPIRED"
-                    }
-                  },
-                  "unauth": {
-                    "value": {
-                      "error": "UNAUTHORIZED"
-                    }
-                  },
-                  "notFound": {
-                    "value": {
-                      "error": "USER_NOT_FOUND"
-                    }
-                  }
+                  "expired": { "value": { "error": "OTP_WINDOW_EXPIRED" } },
+                  "unauth": { "value": { "error": "UNAUTHORIZED" } },
+                  "notFound": { "value": { "error": "USER_NOT_FOUND" } }
                 }
               }
             }
@@ -255,6 +202,7 @@
     },
     "/auth/signup": {
       "post": {
+        "security": [],
         "tags": ["Auth"],
         "summary": "Signup after OTP verify (within ~8 minutes)",
         "operationId": "signupWithOtp",
@@ -262,9 +210,7 @@
           "required": true,
           "content": {
             "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/SignupRequest"
-              },
+              "schema": { "$ref": "#/components/schemas/SignupRequest" },
               "examples": {
                 "default": {
                   "value": {
@@ -285,9 +231,7 @@
             "description": "Signup successful",
             "content": {
               "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/AuthTokensWithUser"
-                }
+                "schema": { "$ref": "#/components/schemas/AuthTokensWithUser" }
               }
             }
           },
@@ -295,25 +239,15 @@
             "description": "Duplicate/disabled account",
             "content": {
               "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
-                },
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" },
                 "examples": {
                   "mobileExists": {
-                    "value": {
-                      "error": "MOBILE_ALREADY_EXISTS"
-                    }
+                    "value": { "error": "MOBILE_ALREADY_EXISTS" }
                   },
                   "emailExists": {
-                    "value": {
-                      "error": "EMAIL_ALREADY_EXISTS"
-                    }
+                    "value": { "error": "EMAIL_ALREADY_EXISTS" }
                   },
-                  "disabled": {
-                    "value": {
-                      "error": "ACCOUNT_DISABLED"
-                    }
-                  }
+                  "disabled": { "value": { "error": "ACCOUNT_DISABLED" } }
                 }
               }
             }
@@ -322,15 +256,9 @@
             "description": "Invalid signup window or other failure",
             "content": {
               "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
-                },
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" },
                 "examples": {
-                  "failed": {
-                    "value": {
-                      "error": "SIGNUP_FAILED"
-                    }
-                  }
+                  "failed": { "value": { "error": "SIGNUP_FAILED" } }
                 }
               }
             }
@@ -340,6 +268,7 @@
     },
     "/auth/token": {
       "post": {
+        "security": [],
         "tags": ["Auth"],
         "summary": "Exchange refresh token for new access token",
         "operationId": "exchangeRefreshToken",
@@ -347,9 +276,7 @@
           "required": true,
           "content": {
             "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/TokenRequest"
-              },
+              "schema": { "$ref": "#/components/schemas/TokenRequest" },
               "examples": {
                 "default": {
                   "value": {
@@ -365,9 +292,7 @@
             "description": "New access token issued",
             "content": {
               "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/TokenResponse"
-                }
+                "schema": { "$ref": "#/components/schemas/TokenResponse" }
               }
             }
           },
@@ -375,19 +300,343 @@
             "description": "Unauthorized / invalid refresh token / inactive user",
             "content": {
               "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
-                },
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" },
                 "examples": {
-                  "unauth": {
-                    "value": {
-                      "error": "UNAUTHORIZED"
-                    }
+                  "unauth": { "value": { "error": "UNAUTHORIZED" } }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/user/profile": {
+      "get": {
+        "tags": ["User"],
+        "summary": "Get User Profile",
+        "operationId": "getUserProfile",
+        "responses": {
+          "200": {
+            "description": "Profile fetched successfully",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/GetUserResponse" }
+              }
+            }
+          },
+          "401": { "$ref": "#/components/responses/JWTUnauthorized" },
+          "403": { "$ref": "#/components/responses/JWTForbidden" }
+        }
+      },
+      "put": {
+        "tags": ["User"],
+        "summary": "Update User Profile",
+        "operationId": "updateUserProfile",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateUserProfileRequest"
+              },
+              "examples": {
+                "valid": {
+                  "value": {
+                    "first_name": "User",
+                    "last_name": "Skolara",
+                    "email": "user@example.com",
+                    "mobile": "9876543210",
+                    "gender": "Male",
+                    "dob": "2001-12-31"
+                  }
+                },
+                "nullables": {
+                  "value": {
+                    "first_name": "User",
+                    "last_name": "Skolara",
+                    "email": "user@example.com",
+                    "mobile": "9876543210",
+                    "gender": null,
+                    "dob": null
                   }
                 }
               }
             }
           }
+        },
+        "responses": {
+          "200": {
+            "description": "Profile updated successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UpdateUserProfileResponse"
+                },
+                "examples": {
+                  "ok": {
+                    "value": { "message": "Profile updated successfully" }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation error or email/mobile conflict",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" },
+                "examples": {
+                  "conflict": {
+                    "value": { "error": "Email or Mobile already exists" }
+                  },
+                  "invalid": { "value": { "error": "INVALID_REQUEST" } }
+                }
+              }
+            }
+          },
+          "401": { "$ref": "#/components/responses/JWTUnauthorized" },
+          "403": { "$ref": "#/components/responses/JWTForbidden" },
+          "404": {
+            "description": "User not found",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" },
+                "examples": {
+                  "notFound": { "value": { "error": "User not found" } }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/colleges": {
+      "get": {
+        "tags": ["Colleges"],
+        "summary": "List colleges",
+        "operationId": "getColleges",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "category",
+            "schema": { "type": "number" },
+            "required": false,
+            "description": "Filter by category (college_type_id)"
+          },
+          {
+            "in": "query",
+            "name": "search",
+            "schema": { "type": "string" },
+            "required": false,
+            "description": "Search by name (prefix match) or short name (contains)"
+          },
+          {
+            "in": "query",
+            "name": "name",
+            "schema": { "type": "string" },
+            "required": false,
+            "description": "Alias of `search`. If both provided, `search` takes precedence."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "List of colleges",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CollegeListResponse"
+                },
+                "examples": {
+                  "ok": {
+                    "value": [
+                      {
+                        "id": "clg_abc123",
+                        "name": "Skolara Institute of Tech",
+                        "area": "Koramangala",
+                        "city": "Bengaluru",
+                        "logo_url": "https://cdn.example.com/logo.png",
+                        "is_applied": false
+                      }
+                    ]
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid query parameter (e.g., category not a number)",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" },
+                "examples": {
+                  "invalidCategory": {
+                    "value": { "error": "Invalid 'category' value" }
+                  }
+                }
+              }
+            }
+          },
+          "401": { "$ref": "#/components/responses/JWTUnauthorized" }
+        }
+      }
+    },
+    "/colleges/{id}": {
+      "get": {
+        "tags": ["Colleges"],
+        "summary": "Get college by ID",
+        "operationId": "getCollegeById",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": { "type": "string" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "College details",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/CollegeDetail" }
+              }
+            }
+          },
+          "401": { "$ref": "#/components/responses/JWTUnauthorized" },
+          "404": {
+            "description": "College not found",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" },
+                "examples": {
+                  "nf": { "value": { "error": "College not found" } }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/colleges/category": {
+      "get": {
+        "security": [],
+        "tags": ["Colleges"],
+        "summary": "List college categories",
+        "operationId": "getCollegeCategories",
+        "responses": {
+          "200": {
+            "description": "Category list",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CategoryListResponse"
+                },
+                "examples": {
+                  "ok": { "value": [{ "id": 1, "name": "Engineering" }] }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/colleges/save": {
+      "post": {
+        "tags": ["Colleges"],
+        "summary": "Toggle save college",
+        "operationId": "saveCollege",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/SaveCollegeRequest" },
+              "examples": {
+                "default": { "value": { "college_id": "clg_abc123" } }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "College saved",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SaveCollegeResponse"
+                },
+                "examples": {
+                  "saved": {
+                    "value": { "message": "College saved", "saved": true }
+                  }
+                }
+              }
+            }
+          },
+          "200": {
+            "description": "Save toggled (either saved or removed)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SaveCollegeResponse"
+                },
+                "examples": {
+                  "removed": {
+                    "value": {
+                      "message": "College removed from saved",
+                      "saved": false
+                    }
+                  },
+                  "reSaved": {
+                    "value": { "message": "College saved", "saved": true }
+                  }
+                }
+              }
+            }
+          },
+          "401": { "$ref": "#/components/responses/JWTUnauthorized" },
+          "404": {
+            "description": "College not found",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" },
+                "examples": {
+                  "nf": { "value": { "error": "College not found" } }
+                }
+              }
+            }
+          }
+        }
+      },
+      "get": {
+        "tags": ["Colleges"],
+        "summary": "List saved colleges",
+        "operationId": "getSavedColleges",
+        "responses": {
+          "200": {
+            "description": "Saved colleges for the authenticated user",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CollegeListResponse"
+                },
+                "examples": {
+                  "ok": {
+                    "value": [
+                      {
+                        "id": "clg_abc123",
+                        "name": "Skolara Institute of Tech",
+                        "area": "Koramangala",
+                        "city": "Bengaluru",
+                        "logo_url": "https://cdn.example.com/logo.png",
+                        "is_applied": true
+                      }
+                    ]
+                  }
+                }
+              }
+            }
+          },
+          "401": { "$ref": "#/components/responses/JWTUnauthorized" }
         }
       }
     }
@@ -401,37 +650,82 @@
         "description": "Standard JWT bearer token (used on protected endpoints)."
       }
     },
+    "responses": {
+      "JWTUnauthorized": {
+        "description": "Missing, malformed, expired, or invalid JWT",
+        "headers": {
+          "WWW-Authenticate": {
+            "schema": { "type": "string" },
+            "description": "Auth challenge header (e.g., Bearer realm and error details)"
+          }
+        },
+        "content": {
+          "application/json": {
+            "schema": { "$ref": "#/components/schemas/JWTErrorResponse" },
+            "examples": {
+              "missingHeader": {
+                "value": {
+                  "error": "UNAUTHORIZED",
+                  "message": "Missing or malformed Authorization header",
+                  "statusCode": 401
+                }
+              },
+              "invalid": {
+                "value": {
+                  "error": "INVALID_TOKEN",
+                  "message": "JWT signature verification failed",
+                  "statusCode": 401
+                }
+              },
+              "expired": {
+                "value": {
+                  "error": "TOKEN_EXPIRED",
+                  "message": "JWT access token has expired",
+                  "statusCode": 401
+                }
+              }
+            }
+          }
+        }
+      },
+      "JWTForbidden": {
+        "description": "Authenticated but not allowed to access this resource",
+        "content": {
+          "application/json": {
+            "schema": { "$ref": "#/components/schemas/JWTErrorResponse" },
+            "examples": {
+              "forbidden": {
+                "value": {
+                  "error": "FORBIDDEN",
+                  "message": "Insufficient permissions",
+                  "statusCode": 403
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "schemas": {
       "HealthResponse": {
         "type": "object",
         "properties": {
-          "status": {
-            "type": "string",
-            "example": "ok"
-          }
+          "status": { "type": "string", "example": "ok" }
         },
         "required": ["status"]
       },
       "ErrorResponse": {
         "type": "object",
         "properties": {
-          "error": {
-            "type": "string"
-          }
+          "error": { "type": "string" }
         },
         "required": ["error"]
       },
       "TooManyRequestsResponse": {
         "type": "object",
         "properties": {
-          "statusCode": {
-            "type": "integer",
-            "example": 429
-          },
-          "error": {
-            "type": "string",
-            "example": "Too Many Requests"
-          },
+          "statusCode": { "type": "integer", "example": 429 },
+          "error": { "type": "string", "example": "Too Many Requests" },
           "message": {
             "type": "string",
             "example": "Rate limit exceeded, retry in 30 seconds"
@@ -441,10 +735,7 @@
       "OtpSendRequest": {
         "type": "object",
         "properties": {
-          "mobile": {
-            "type": "string",
-            "pattern": "^[0-9]{10}$"
-          }
+          "mobile": { "type": "string", "pattern": "^[0-9]{10}$" }
         },
         "required": ["mobile"]
       },
@@ -502,6 +793,33 @@
           "course_type_id"
         ]
       },
+      "GetUserResponse": {
+        "type": "object",
+        "properties": {
+          "user_id": { "type": "string", "format": "uuid" },
+          "mobile": { "type": "string", "pattern": "^[0-9]{10}$" },
+          "email": { "type": "string", "format": "email", "nullable": true },
+          "first_name": { "type": "string" },
+          "last_name": { "type": "string" },
+          "gender": {
+            "type": "string",
+            "enum": ["Male", "Female", "Other"],
+            "nullable": true
+          },
+          "dob": { "type": "string", "format": "date", "nullable": true },
+          "prefered_theme": { "type": "string", "enum": ["Light", "Dark"] },
+          "allow_notifications": { "type": "boolean" }
+        },
+        "required": [
+          "user_id",
+          "mobile",
+          "email",
+          "first_name",
+          "last_name",
+          "prefered_theme",
+          "allow_notifications"
+        ]
+      },
       "AuthTokensWithUser": {
         "type": "object",
         "properties": {
@@ -520,14 +838,8 @@
       "User": {
         "type": "object",
         "properties": {
-          "id": {
-            "type": "string",
-            "example": "123"
-          },
-          "mobile": {
-            "type": "string",
-            "example": "9876543210"
-          },
+          "id": { "type": "string", "example": "123" },
+          "mobile": { "type": "string", "example": "9876543210" },
           "email": {
             "type": "string",
             "format": "email",
@@ -539,20 +851,167 @@
       "TokenRequest": {
         "type": "object",
         "properties": {
-          "refreshToken": {
-            "type": "string"
-          }
+          "refreshToken": { "type": "string" }
         },
         "required": ["refreshToken"]
       },
       "TokenResponse": {
         "type": "object",
         "properties": {
-          "accessToken": {
-            "type": "string"
-          }
+          "accessToken": { "type": "string" }
         },
         "required": ["accessToken"]
+      },
+      "JWTErrorResponse": {
+        "type": "object",
+        "properties": {
+          "error": {
+            "type": "string",
+            "enum": [
+              "UNAUTHORIZED",
+              "INVALID_TOKEN",
+              "TOKEN_EXPIRED",
+              "FORBIDDEN"
+            ],
+            "description": "JWT validation error type"
+          },
+          "message": {
+            "type": "string",
+            "description": "Human-readable error details"
+          },
+          "statusCode": {
+            "type": "integer",
+            "example": 401,
+            "description": "HTTP status code"
+          }
+        },
+        "required": ["error"]
+      },
+      "UpdateUserProfileRequest": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["first_name", "last_name", "email", "mobile"],
+        "properties": {
+          "first_name": { "type": "string", "minLength": 1 },
+          "last_name": { "type": "string", "minLength": 1 },
+          "email": { "type": "string", "format": "email" },
+          "mobile": { "type": "string", "pattern": "^[0-9]{10}$" },
+          "gender": {
+            "type": "string",
+            "enum": ["Male", "Female", "Others"],
+            "nullable": true,
+            "default": null
+          },
+          "dob": {
+            "type": "string",
+            "format": "date",
+            "nullable": true,
+            "default": null,
+            "description": "YYYY-MM-DD"
+          }
+        }
+      },
+      "UpdateUserProfileResponse": {
+        "type": "object",
+        "properties": {
+          "message": {
+            "type": "string",
+            "example": "Profile updated successfully"
+          }
+        },
+        "required": ["message"]
+      },
+      "CollegeListItem": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "string" },
+          "name": { "type": "string" },
+          "area": { "type": "string", "nullable": true },
+          "city": { "type": "string", "nullable": true },
+          "logo_url": { "type": "string", "format": "uri", "nullable": true },
+          "is_applied": { "type": "boolean" }
+        },
+        "required": ["id", "name", "is_applied"]
+      },
+      "CollegeListResponse": {
+        "type": "array",
+        "items": { "$ref": "#/components/schemas/CollegeListItem" }
+      },
+      "EligibilityItem": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "integer" },
+          "criteria_type": { "type": "string" },
+          "criteria": { "type": "string" }
+        },
+        "required": ["id", "criteria_type", "criteria"]
+      },
+      "ScholarshipItem": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "integer" },
+          "schemes": { "type": "string" }
+        },
+        "required": ["id", "schemes"]
+      },
+      "CollegeDetail": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "string" },
+          "name": { "type": "string" },
+          "area": { "type": "string", "nullable": true },
+          "city": { "type": "string", "nullable": true },
+          "logo_url": { "type": "string", "format": "uri", "nullable": true },
+          "cover_url": { "type": "string", "format": "uri", "nullable": true },
+          "is_saved": { "type": "boolean" },
+          "is_applied": { "type": "boolean" },
+          "description": { "type": "string", "nullable": true },
+          "deadline": { "type": "string", "format": "date", "nullable": true },
+          "eligibility": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/EligibilityItem" }
+          },
+          "scholarships": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/ScholarshipItem" }
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "is_saved",
+          "is_applied",
+          "eligibility",
+          "scholarships"
+        ]
+      },
+      "CategoryItem": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "integer" },
+          "name": { "type": "string" }
+        },
+        "required": ["id", "name"]
+      },
+      "CategoryListResponse": {
+        "type": "array",
+        "items": { "$ref": "#/components/schemas/CategoryItem" }
+      },
+      "SaveCollegeRequest": {
+        "type": "object",
+        "properties": {
+          "college_id": { "type": "string" }
+        },
+        "required": ["college_id"],
+        "additionalProperties": false
+      },
+      "SaveCollegeResponse": {
+        "type": "object",
+        "properties": {
+          "message": { "type": "string" },
+          "saved": { "type": "boolean" }
+        },
+        "required": ["message", "saved"]
       }
     }
   }

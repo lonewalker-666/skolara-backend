@@ -53,7 +53,6 @@ await fastify.register(swagger, {
     path: path.join(__dirname, "../openapi.json"), // adjust path relative to this file
     baseDir: process.cwd(), // so $ref work correctly
   },
-  
 });
 
 await fastify.register(swaggerUI, {
@@ -100,7 +99,7 @@ await fastify.register(swaggerUI, {
 //     deepLinking: false,
 //   },
 //   staticCSP: true,
-  
+
 // });
 
 // ──────────────────────────────────────────────
@@ -120,7 +119,9 @@ fastify.addHook("preHandler", async (request, reply) => {
     }
 
     // FIX: Robust client IP resolution (works with trustProxy)
-    const xff = ((request.headers["x-forwarded-for"] as string) || "").split(",")[0]?.trim();
+    const xff = ((request.headers["x-forwarded-for"] as string) || "")
+      .split(",")[0]
+      ?.trim();
     const clientIP =
       xff ||
       (request as any).ip ||
@@ -178,10 +179,10 @@ fastify.setErrorHandler((error, request, reply) => {
 
 // ──────────────────────────────────────────────
 // Routes
-await fastify.register(healthRoutes);
-await fastify.register(authRoutes, { prefix: "/api" });
-await fastify.register(userRoutes, { prefix: "/api" });
-await fastify.register(collegeRoutes, { prefix: "/api" });
+await fastify.register(healthRoutes, { prefix: "/api" });
+await fastify.register(authRoutes, { prefix: "/api/auth" });
+await fastify.register(userRoutes, { prefix: "/api/user" });
+await fastify.register(collegeRoutes, { prefix: "/api/colleges" });
 
 // ──────────────────────────────────────────────
 // Start server (skipped during tests)

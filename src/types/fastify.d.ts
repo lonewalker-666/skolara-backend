@@ -1,13 +1,13 @@
 // src/types/fastify.d.ts
-import 'fastify';
+import "fastify";
 
-declare module 'fastify' {
+declare module "fastify" {
   interface FastifyRequest {
     user?: {
       sub: string;
       mobile: string;
       email?: string | null;
-      type: 'access';
+      type: "access";
       iat: number;
       exp: number;
     };

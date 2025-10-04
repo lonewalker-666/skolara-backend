@@ -6,11 +6,10 @@ export const ApplicationStatusSeeder: Seeder = {
     await prisma.application_status.createMany({
       data: [
         { name: "Applied" },
-        { name: "Ready To Pay" },
         { name: "Submitted" },
         { name: "Under Review" },
         { name: "Accepted" },
-        { name: "Documents Verified" },
+        { name: "Documents" },
       ],
       skipDuplicates: true,
     });

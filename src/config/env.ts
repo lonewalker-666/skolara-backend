@@ -36,6 +36,9 @@ const envSchema = z.object({
   OTP_MAX_PER_HOUR: z.string().transform(Number).default("5"),
   SMS_API_KEY: z.string().length(16),
   SMS_SENDER_ID: z.string().min(3).max(11),
+  SUPABASE_SERVICE_ROLE_KEY: z.string(),
+  SUPABASE_URL: z.string(),
+  SUPABASE_BUCKET: z.string(),
 });
 
 export const env = envSchema.parse(process.env);

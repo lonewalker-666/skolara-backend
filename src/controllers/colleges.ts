@@ -5,7 +5,7 @@ import { Prisma } from "@prisma/client";
 
 export async function getColleges(
   request: FastifyRequest,
-  reply: FastifyReply,
+  reply: FastifyReply
 ) {
   try {
     // Accept both ?search= and ?name= as the search term (name is an alias)
@@ -89,7 +89,7 @@ export async function getColleges(
 
 export async function getCollegeById(
   request: FastifyRequest,
-  reply: FastifyReply,
+  reply: FastifyReply
 ) {
   const { id } = request.params as { id: string };
   const user = request.user;
@@ -163,7 +163,7 @@ export async function getCollegeById(
 
 export async function getCategory(
   request: FastifyRequest,
-  reply: FastifyReply,
+  reply: FastifyReply
 ) {
   try {
     const colleges = await prisma.college_type.findMany({
@@ -183,7 +183,7 @@ export async function getCategory(
 
 export async function saveCollege(
   request: FastifyRequest,
-  reply: FastifyReply,
+  reply: FastifyReply
 ) {
   try {
     const user = request.user;
@@ -251,7 +251,7 @@ export async function saveCollege(
 
 export const getSavedColleges = async (
   request: FastifyRequest,
-  reply: FastifyReply,
+  reply: FastifyReply
 ) => {
   try {
     const user = request.user;
@@ -312,4 +312,58 @@ export const getSavedColleges = async (
   }
 };
 
+export const applyCollege = async (
+  request: FastifyRequest,
+  reply: FastifyReply
+) => {
+  try {
+    const user = request.user;
+    if (!user) {
+      return reply.status(401).send({ error: "Unauthorized" });
+    }
+    console.log("applyCollege body --------- ", request.body);
 
+    const dbUser = await prisma.users.findUnique({
+      where: { ref_id: user.sub },
+      select: { id: true, ref_id: true },
+    });
+
+    if (!dbUser) {
+      return reply.status(401).send({ error: "Unauthorized" });
+    }
+
+    const { college_id, hsc_path = null, sslc } = request.body as { college_id: string, hsc_path?: string, sslc: string };
+
+    const college = await prisma.college.findUnique({
+      where: { ref_id: college_id },
+      select: { id: true, ref_id: true, name: true },
+    });
+
+    if (!college) {
+      return reply.status(404).send({ error: "College not found" });
+    }
+
+    const existing = await prisma.applied_colleges.findFirst({
+      where: {
+        user_id: dbUser.id,
+        college_id: college.id,
+        is_active: true,
+      },
+    });
+
+    if (existing) {
+      return reply.status(400).send({
+        message: "You have already applied for this college",
+      });
+    }
+
+    return reply.status(201).send({
+      message: "College applied",
+      applied: true,
+    });
+  } catch (e: any) {
+    console.log("applyCollege error --------- ", e);
+    const { status, payload } = toHttpError(e);
+    return reply.status(status).send(payload);
+  }
+};

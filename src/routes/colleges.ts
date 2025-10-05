@@ -66,5 +66,4 @@ export default async function collegeRoutes(app: FastifyInstance) {
     },
     getSavedColleges,
   );
-
 }

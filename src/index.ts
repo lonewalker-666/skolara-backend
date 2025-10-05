@@ -13,6 +13,9 @@ import path from "path";
 import { fileURLToPath } from "url";
 import userRoutes from "./routes/user.js";
 import collegeRoutes from "./routes/colleges.js";
+import multipart, { MultipartFile } from "@fastify/multipart";
+import supabasePlugin from "./plugins/supabase";
+import { uploadRoutes } from "./routes/uploads.js";
 
 // ──────────────────────────────────────────────
 // Fastify instance
@@ -43,6 +46,21 @@ const rateLimiter = new RateLimiterMemory({
 // Plugins
 await fastify.register(helmet);
 await fastify.register(cors);
+
+// multipart for file uploads
+await fastify.register(multipart, {
+  limits: {
+    fileSize: 10 * 1024 * 1024, // 10 MB; adjust as needed
+  },
+});
+
+await fastify.addContentTypeParser(
+  "application/pdf",
+  { parseAs: "buffer" },
+  (req, body, done) => done(null, body),
+);
+// supabase client on app.supabase
+await fastify.register(supabasePlugin);
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -183,6 +201,7 @@ await fastify.register(healthRoutes, { prefix: "/api" });
 await fastify.register(authRoutes, { prefix: "/api/auth" });
 await fastify.register(userRoutes, { prefix: "/api/user" });
 await fastify.register(collegeRoutes, { prefix: "/api/colleges" });
+await fastify.register(uploadRoutes, { prefix: "/api/uploads" });
 
 // ──────────────────────────────────────────────
 // Start server (skipped during tests)

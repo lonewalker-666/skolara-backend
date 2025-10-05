@@ -5,7 +5,10 @@
     "description": "Backend for searching colleges, managing applications, and processing payments.",
     "version": "1.0.0"
   },
-  "servers": [{ "url": "http://localhost:8000/api" }],
+  "servers": [
+    { "url": "http://localhost:8000/api" },
+    { "url": "https://devapi.skolara.in/api" }
+  ],
   "tags": [
     { "name": "Health", "description": "Service health checks" },
     {

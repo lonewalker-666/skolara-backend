@@ -642,6 +642,136 @@
           "401": { "$ref": "#/components/responses/JWTUnauthorized" }
         }
       }
+    },
+
+    "/colleges/applied": {
+      "get": {
+        "tags": ["Colleges"],
+        "summary": "List applied colleges",
+        "operationId": "getAppliedColleges",
+        "security": [{ "bearerAuth": [] }],
+        "responses": {
+          "200": {
+            "description": "List of colleges the user has applied to",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AppliedCollegeListResponse"
+                },
+                "examples": {
+                  "ok": {
+                    "value": [
+                      {
+                        "id": "app_abc123",
+                        "applied_at": "2025-03-01T10:15:00.000Z",
+                        "ready_to_pay": false,
+                        "documents_verified_at": null,
+                        "reviewed_at": null,
+                        "submitted_at": null,
+                        "accepted_at": null,
+                        "paid_at": null,
+                        "paid": false,
+                        "is_active": true,
+                        "amount": 5000,
+                        "application_status_id": 2,
+                        "status": "Pending",
+                        "hsc_path": null,
+                        "hsc_signed_url": null,
+                        "sslc_path": "docs/sslc/abc.pdf",
+                        "sslc_signed_url": "https://signed-url.com/docs/sslc/abc.pdf",
+                        "college": {
+                          "id": "clg_abc123",
+                          "name": "Skolara Institute of Tech",
+                          "area": "Koramangala",
+                          "city": "Bengaluru",
+                          "logo_url": "https://cdn.example.com/logo.png"
+                        }
+                      }
+                    ]
+                  }
+                }
+              }
+            }
+          },
+          "401": { "$ref": "#/components/responses/JWTUnauthorized" }
+        }
+      }
+    },
+    "/colleges/apply": {
+      "post": {
+        "tags": ["Colleges"],
+        "summary": "Apply to a college",
+        "operationId": "applyCollege",
+        "security": [{ "bearerAuth": [] }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ApplyCollegeRequest"
+              },
+              "examples": {
+                "default": {
+                  "value": {
+                    "college_id": "clg_abc123",
+                    "hsc_path": "docs/hsc/123.pdf",
+                    "sslc_path": "docs/sslc/123.pdf"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "College application created successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApplyCollegeResponse"
+                },
+                "examples": {
+                  "created": {
+                    "value": {
+                      "message": "College applied",
+                      "applicationId": "app_abc123"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request (e.g., already applied for the college)",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" },
+                "examples": {
+                  "alreadyApplied": {
+                    "value": {
+                      "message": "You have already applied for this college"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": { "$ref": "#/components/responses/JWTUnauthorized" },
+          "404": {
+            "description": "College not found",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" },
+                "examples": {
+                  "notFound": {
+                    "value": { "error": "College not found" }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
   "components": {
@@ -1015,6 +1145,97 @@
           "saved": { "type": "boolean" }
         },
         "required": ["message", "saved"]
+      },
+      "AppliedCollegeItem": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "string" },
+          "applied_at": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "ready_to_pay": { "type": "boolean" },
+          "documents_verified_at": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "reviewed_at": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "submitted_at": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "accepted_at": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "paid_at": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "paid": { "type": "boolean" },
+          "is_active": { "type": "boolean" },
+          "amount": { "type": "number", "nullable": true },
+          "application_status_id": { "type": "number" },
+          "status": { "type": "string" },
+          "hsc_path": { "type": "string", "nullable": true },
+          "hsc_signed_url": {
+            "type": "string",
+            "format": "uri",
+            "nullable": true
+          },
+          "sslc_path": { "type": "string", "nullable": true },
+          "sslc_signed_url": {
+            "type": "string",
+            "format": "uri",
+            "nullable": true
+          },
+          "college": {
+            "type": "object",
+            "properties": {
+              "id": { "type": "string" },
+              "name": { "type": "string" },
+              "area": { "type": "string", "nullable": true },
+              "city": { "type": "string", "nullable": true },
+              "logo_url": {
+                "type": "string",
+                "format": "uri",
+                "nullable": true
+              }
+            },
+            "required": ["id", "name"]
+          }
+        },
+        "required": ["id", "status", "is_active", "paid", "college"]
+      },
+      "AppliedCollegeListResponse": {
+        "type": "array",
+        "items": { "$ref": "#/components/schemas/AppliedCollegeItem" }
+      },
+      "ApplyCollegeRequest": {
+        "type": "object",
+        "properties": {
+          "college_id": { "type": "string", "format": "uuid" },
+          "hsc_path": { "type": "string" },
+          "sslc_path": { "type": "string" }
+        },
+        "required": ["college_id", "sslc_path"]
+      },
+      "ApplyCollegeResponse": {
+        "type": "object",
+        "properties": {
+          "message": { "type": "string" },
+          "applicationId": { "type": "string" }
+        },
+        "required": ["message", "applicationId"]
       }
     }
   }

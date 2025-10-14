@@ -2,6 +2,8 @@ import { prisma } from "../db/client";
 import { FastifyReply, FastifyRequest } from "fastify";
 import toHttpError from "../utils/toHttpError";
 import { Prisma } from "@prisma/client";
+import { env } from "../config/env";
+import { getSignedUrl } from "../services/storageService";
 
 export async function getColleges(
   request: FastifyRequest,
@@ -293,7 +295,7 @@ export const getSavedColleges = async (
       },
     });
 
-    const list = savedColleges.map((college) => {
+    const list = savedColleges.map((college: any) => {
       return {
         id: college.college.ref_id,
         name: college.college.name,
@@ -307,6 +309,115 @@ export const getSavedColleges = async (
     return reply.status(200).send(list);
   } catch (e: any) {
     console.log("getSavedColleges error --------- ", e);
+    const { status, payload } = toHttpError(e);
+    return reply.status(status).send(payload);
+  }
+};
+
+export const getAppliedColleges = async (
+  request: FastifyRequest,
+  reply: FastifyReply
+) => {
+  try {
+    const user = request.user;
+    if (!user) {
+      return reply.status(401).send({ error: "Unauthorized" });
+    }
+    console.log("getAppliedColleges body --------- ", request.body);
+
+    const dbUser = await prisma.users.findUnique({
+      where: { ref_id: user.sub },
+      select: { id: true, ref_id: true },
+    });
+
+    if (!dbUser) {
+      return reply.status(401).send({ error: "Unauthorized" });
+    }
+
+    const appliedColleges = await prisma.applied_colleges.findMany({
+      where: {
+        user_id: dbUser.id,
+        is_active: true,
+      },
+      select: {
+        ref_id: true,
+        applied_at: true,
+        ready_to_pay: true,
+        documents_verified_at: true,
+        reviewed_at: true,
+        submitted_at: true,
+        accepted_at: true,
+        paid_at: true,
+        paid: true,
+        is_active: true,
+        amount: true,
+        application_status_id: true,
+        status: {
+          select: { name: true },
+        },
+        hsc_path: true,
+        sslc_path: true,
+        college: {
+          select: {
+            ref_id: true,
+            name: true,
+            area: true,
+            city: true,
+            logo_url: true,
+          },
+        },
+      },
+    });
+
+    const list = await Promise.all( appliedColleges.map(async (application: any) => {
+      const hscSignedUrl = application.hsc_path
+        ? await getSignedUrl(
+            request.server,
+            env.SUPABASE_BUCKET,
+            application.hsc_path,
+            60 * 60 
+          )
+        : null;
+      const sslcSignedUrl = application.sslc_path
+        ? await getSignedUrl(
+            request.server,
+            env.SUPABASE_BUCKET,
+            application.sslc_path,
+            60 * 60 
+          )
+        : null;
+
+      return {
+        id: application.ref_id,
+        applied_at: application.applied_at,
+        ready_to_pay: application.ready_to_pay,
+        documents_verified_at: application.documents_verified_at,
+        reviewed_at: application.reviewed_at,
+        submitted_at: application.submitted_at,
+        accepted_at: application.accepted_at,
+        paid_at: application.paid_at,
+        paid: application.paid,
+        is_active: application.is_active,
+        amount: application.amount,
+        application_status_id: application.application_status_id,
+        status: application.status.name,
+        hsc_path: application.hsc_path,
+        hsc_signed_url: hscSignedUrl,
+        sslc_path: application.sslc_path,
+        sslc_signed_url: sslcSignedUrl,
+        college: {
+          id: application.college.ref_id,
+          name: application.college.name,
+          area: application.college.area,
+          city: application.college.city,
+          logo_url: application.college.logo_url,
+        },
+      };
+    }));
+
+    return reply.status(200).send(list);
+  } catch (e: any) {
+    console.log("getAppliedColleges error --------- ", e);
     const { status, payload } = toHttpError(e);
     return reply.status(status).send(payload);
   }
@@ -332,7 +443,15 @@ export const applyCollege = async (
       return reply.status(401).send({ error: "Unauthorized" });
     }
 
-    const { college_id, hsc_path = null, sslc } = request.body as { college_id: string, hsc_path?: string, sslc: string };
+    const {
+      college_id,
+      hsc_path = null,
+      sslc_path,
+    } = request.body as {
+      college_id: string;
+      hsc_path?: string;
+      sslc_path: string;
+    };
 
     const college = await prisma.college.findUnique({
       where: { ref_id: college_id },
@@ -357,9 +476,19 @@ export const applyCollege = async (
       });
     }
 
+    const application = await prisma.applied_colleges.create({
+      data: {
+        user_id: dbUser.id,
+        college_id: college.id,
+        is_active: true,
+        hsc_path: hsc_path,
+        sslc_path: sslc_path,
+      },
+    });
+
     return reply.status(201).send({
       message: "College applied",
-      applied: true,
+      applicationId: application.ref_id,
     });
   } catch (e: any) {
     console.log("applyCollege error --------- ", e);

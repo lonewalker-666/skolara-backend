@@ -272,7 +272,6 @@ model application_status {
   created_at DateTime @default(now()) @db.Timestamptz(6)
   updated_at DateTime @default(now()) @updatedAt @db.Timestamptz(6)
 
-  tracks           application_tracking[]
   applied_colleges applied_colleges[]
 
   @@schema("development")
@@ -283,8 +282,10 @@ model applied_colleges {
   college_id            Int
   user_id               Int
   application_status_id Int       @default(1)
-  degree                String    @db.VarChar(100)
+  ref_id                String    @unique @default(uuid()) @db.Uuid
   amount                Decimal?  @db.Decimal(12, 2)
+  hsc_path              String?   @db.Text
+  sslc_path             String    @db.Text
   is_active             Boolean   @default(true)
   paid                  Boolean   @default(false)
   ready_to_pay          Boolean   @default(false)
@@ -298,31 +299,13 @@ model applied_colleges {
   updated_at            DateTime  @default(now()) @updatedAt @db.Timestamptz(6)
 
   // Relations
-  college  college                @relation(fields: [college_id], references: [id], onDelete: Cascade)
-  user     users                  @relation(fields: [user_id], references: [id], onDelete: Cascade)
-  status   application_status     @relation(fields: [application_status_id], references: [id], onDelete: Restrict)
-  tracking application_tracking[]
+  college college            @relation(fields: [college_id], references: [id], onDelete: Cascade)
+  user    users              @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  status  application_status @relation(fields: [application_status_id], references: [id], onDelete: Restrict)
 
   @@unique([college_id, user_id, is_active])
   @@index([college_id])
   @@index([user_id])
-  @@schema("development")
-}
-
-model application_tracking {
-  id             Int      @id @default(autoincrement())
-  application_id Int
-  ssl_marksheet  String?  @db.VarChar(255)
-  hsc_marksheet  String?  @db.VarChar(255)
-  created_at     DateTime @default(now()) @db.Timestamptz(6)
-  updated_at     DateTime @default(now()) @updatedAt @db.Timestamptz(6)
-
-  // Relations
-  application          applied_colleges    @relation(fields: [application_id], references: [id], onDelete: Cascade)
-  application_status   application_status? @relation(fields: [application_statusId], references: [id])
-  application_statusId Int?
-
-  @@index([application_id])
   @@schema("development")
 }
 

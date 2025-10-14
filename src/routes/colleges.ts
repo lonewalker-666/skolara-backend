@@ -1,6 +1,8 @@
 import { FastifyInstance } from "fastify";
 import { authGuard } from "../services/authGuard";
 import {
+  applyCollege,
+  getAppliedColleges,
   getCategory,
   getCollegeById,
   getColleges,
@@ -18,6 +20,7 @@ export default async function collegeRoutes(app: FastifyInstance) {
           properties: {
             category: { type: "number" },
             search: { type: "string" },
+            name: { type: "string" },
           },
         },
       },
@@ -29,7 +32,13 @@ export default async function collegeRoutes(app: FastifyInstance) {
   app.get(
     "/:id",
     {
-      schema: {},
+      schema: {
+        params: {
+          type: "object",
+          properties: { id: { type: "string", format: "uuid" } },
+          required: ["id"],
+        },
+      },
       preHandler: [authGuard],
     },
     getCollegeById,
@@ -49,7 +58,7 @@ export default async function collegeRoutes(app: FastifyInstance) {
       schema: {
         body: {
           type: "object",
-          properties: { college_id: { type: "string" } },
+          properties: { college_id: { type: "string", format: "uuid" } },
           required: ["college_id"],
         },
       },
@@ -65,5 +74,33 @@ export default async function collegeRoutes(app: FastifyInstance) {
       preHandler: [authGuard],
     },
     getSavedColleges,
+  );
+
+  app.get(
+    "/applied",
+    {
+      schema: {},
+      preHandler: [authGuard],
+    },
+    getAppliedColleges,
+  );
+
+  app.post(
+    "/apply",
+    {
+      schema: {
+        body: {
+          type: "object",
+          properties: { 
+            college_id: { type: "string", format: "uuid" },
+            hsc_path: { type: "string" },
+            sslc_path: { type: "string" },
+           },
+          required: ["college_id","sslc_path"],
+        },
+      },
+      preHandler: [authGuard],
+    },
+    applyCollege,
   );
 }

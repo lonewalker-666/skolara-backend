@@ -16,7 +16,8 @@
       "description": "OTP, login, signup, and token endpoints"
     },
     { "name": "Colleges", "description": "Colleges and colleges search" },
-    { "name": "User", "description": "User Management" }
+    { "name": "User", "description": "User Management" },
+    { "name": "Uploads", "description": "Document uploads" }
   ],
   "security": [{ "bearerAuth": [] }],
   "paths": {
@@ -772,6 +773,203 @@
           }
         }
       }
+    },
+    "/uploads/application/{type}": {
+      "put": {
+        "tags": ["Uploads"],
+        "summary": "Upload Application Document",
+        "operationId": "uploadApplicationDocument",
+        "parameters": [
+          {
+            "name": "type",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "enum": ["hsc", "sslc"]
+            },
+            "description": "Type of application document to upload"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "file": {
+                    "type": "string",
+                    "format": "binary",
+                    "description": "PDF document to upload"
+                  }
+                },
+                "required": ["file"]
+              },
+              "examples": {
+                "valid": {
+                  "summary": "Example file upload",
+                  "value": {
+                    "file": "(binary PDF file)"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "File uploaded successfully",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/FileUploadResponse" },
+                "examples": {
+                  "success": {
+                    "value": {
+                      "message": "File uploaded successfully",
+                      "path": "user123/application/hsc/1697238123-abc123-file.pdf",
+                      "signedUrl": "https://signed.url.example.com/file.pdf"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation or file error",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" },
+                "examples": {
+                  "noFile": { "value": { "message": "No file provided" } },
+                  "invalidType": {
+                    "value": { "message": "Only PDF files are allowed" }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/JWTUnauthorized"
+          },
+          "406": {
+            "description": "Invalid content type",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" },
+                "examples": {
+                  "invalidContentType": {
+                    "value": { "message": "Invalid content type" }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
+    "/uploads/account/{type}": {
+      "put": {
+        "tags": ["Uploads"],
+        "summary": "Upload Account Document",
+        "operationId": "uploadAccountDocument",
+        "parameters": [
+          {
+            "name": "type",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Type of account document to upload"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "file": {
+                    "type": "string",
+                    "format": "binary",
+                    "description": "PDF document to upload"
+                  }
+                },
+                "required": ["file"]
+              },
+              "examples": {
+                "valid": {
+                  "summary": "Example file upload",
+                  "value": {
+                    "file": "(binary PDF file)"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "File uploaded successfully",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/FileUploadResponse" },
+                "examples": {
+                  "success": {
+                    "value": {
+                      "message": "File uploaded successfully",
+                      "path": "user123/account/bank/1697238123-xyz456-file.pdf",
+                      "signedUrl": "https://signed.url.example.com/file.pdf"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation or file error",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" },
+                "examples": {
+                  "noFile": { "value": { "message": "No file provided" } },
+                  "invalidType": {
+                    "value": { "message": "Only PDF files are allowed" }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/JWTUnauthorized"
+          },
+          "406": {
+            "description": "Invalid content type",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" },
+                "examples": {
+                  "invalidContentType": {
+                    "value": { "message": "Invalid content type" }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
     }
   },
   "components": {
@@ -1236,6 +1434,15 @@
           "applicationId": { "type": "string" }
         },
         "required": ["message", "applicationId"]
+      },
+      "FileUploadResponse": {
+        "type": "object",
+        "properties": {
+          "message": { "type": "string" },
+          "path": { "type": "string" },
+          "signedUrl": { "type": "string", "format": "uri" }
+        },
+        "required": ["message", "path", "signedUrl"]
       }
     }
   }

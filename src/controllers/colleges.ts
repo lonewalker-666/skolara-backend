@@ -4,6 +4,7 @@ import toHttpError from "../utils/toHttpError";
 import { Prisma } from "@prisma/client";
 import { env } from "../config/env";
 import { getSignedUrl } from "../services/storageService";
+import { pl, tr } from "zod/v4/locales";
 
 export async function getColleges(
   request: FastifyRequest,
@@ -141,6 +142,49 @@ export async function getCollegeById(
       applied_by: {
         where: { user_id: checkUser.id, is_active: true },
       },
+      placement_cell: {
+        select: {
+          id: true,
+          description: true,
+        },
+      },
+      placement_stats:{
+        take: 1,
+        select: {
+          id: true,
+          year: true,
+          min_package_lpa: true,
+          highest_package_lpa: true,
+          notes: true,
+      },
+      orderBy: {
+        year: "desc",
+      },
+      },
+      hostel_facilities: {
+        select: {
+          id: true,
+          gender: true,
+          sharing_type:{
+            select: {
+              id: true,
+              name: true,
+            }
+          },
+          room_fee: true,
+          mess_fee: true,
+          ac: true,
+          billing_cycle: true,
+          notes: true,
+          currency: true,
+        },
+      },
+      top_recruiters: {
+        select: {
+          id: true,
+          company: true,
+        },
+      },
     },
   });
   if (!college) {
@@ -160,6 +204,10 @@ export async function getCollegeById(
     deadline: college.deadline,
     eligibility: college.eligibility,
     scholarships: college.scholarships,
+    placement_cell: college.placement_cell[0].description || "",
+    hostel_facilities: college.hostel_facilities,
+    placement_stats: college.placement_stats[0] || null,
+    top_recruiters: college.top_recruiters[0] || null,
   });
 }
 
@@ -357,6 +405,16 @@ export const getAppliedColleges = async (
         },
         hsc_path: true,
         sslc_path: true,
+        // order: {
+        //   select: {
+        //     id: true,
+        //     provider_order_id: true,
+        //     amount: true,
+        //     currency: true,
+        //     status: true,
+        //     created_at: true,
+        //   },
+        // },
         college: {
           select: {
             ref_id: true,
@@ -366,6 +424,7 @@ export const getAppliedColleges = async (
             logo_url: true,
           },
         },
+        
       },
     });
 

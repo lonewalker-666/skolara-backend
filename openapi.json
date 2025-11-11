@@ -17,7 +17,16 @@
     },
     { "name": "Colleges", "description": "Colleges and colleges search" },
     { "name": "User", "description": "User Management" },
-    { "name": "Uploads", "description": "Document uploads" }
+    { "name": "Uploads", "description": "Document uploads" },
+    { "name": "Notifications", "description": "User notifications" },
+    {
+      "name": "Support & FAQs",
+      "description": "Customer support and frequently asked questions"
+    },
+    {
+      "name": "Payments",
+      "description": "Create/cancel orders, verify and record payment failures"
+    }
   ],
   "security": [{ "bearerAuth": [] }],
   "paths": {
@@ -970,6 +979,562 @@
           }
         ]
       }
+    },
+
+    "/user/notifications/all": {
+      "get": {
+        "tags": ["Notifications"],
+        "summary": "List notifications for the authenticated user",
+        "operationId": "getNotifications",
+        "responses": {
+          "200": {
+            "description": "Notifications (newest first)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NotificationListResponse"
+                }
+              }
+            }
+          },
+          "401": { "$ref": "#/components/responses/JWTUnauthorized" },
+          "404": {
+            "description": "User not found",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" },
+                "examples": {
+                  "notFound": { "value": { "error": "User not found" } }
+                }
+              }
+            }
+          }
+        },
+        "security": [{ "bearerAuth": [] }]
+      }
+    },
+
+    "/user/notifications/add": {
+      "post": {
+        "tags": ["Notifications"],
+        "summary": "Create a notification for the authenticated user",
+        "operationId": "addNotification",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/NotificationPayload" }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Notification created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GenericMessageResponse"
+                },
+                "examples": {
+                  "ok": {
+                    "value": { "message": "Notification added successfully" }
+                  }
+                }
+              }
+            }
+          },
+          "401": { "$ref": "#/components/responses/JWTUnauthorized" },
+          "404": {
+            "description": "User not found",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" },
+                "examples": {
+                  "notFound": { "value": { "error": "User not found" } }
+                }
+              }
+            }
+          }
+        },
+        "security": [{ "bearerAuth": [] }]
+      }
+    },
+
+    "/user/notifications/mark-read/{id}": {
+      "put": {
+        "tags": ["Notifications"],
+        "summary": "Mark a notification as read",
+        "operationId": "markNotificationAsRead",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": { "type": "string" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Marked as read",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GenericMessageResponse"
+                },
+                "examples": {
+                  "ok": {
+                    "value": { "message": "Notification marked as read" }
+                  }
+                }
+              }
+            }
+          },
+          "401": { "$ref": "#/components/responses/JWTUnauthorized" },
+          "404": {
+            "description": "Notification not found or not owned by user",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" },
+                "examples": {
+                  "nf": { "value": { "error": "Notification not found" } }
+                }
+              }
+            }
+          }
+        },
+        "security": [{ "bearerAuth": [] }]
+      }
+    },
+
+    "/user/notifications/delete": {
+      "post": {
+        "tags": ["Notifications"],
+        "summary": "Bulk delete notifications by notificationId",
+        "operationId": "deleteNotifications",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DeleteNotificationsRequest"
+              },
+              "examples": {
+                "default": {
+                  "value": { "notificationIds": ["notif-1", "notif-2"] }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Deletion result",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DeleteNotificationsResponse"
+                },
+                "examples": {
+                  "ok": {
+                    "value": {
+                      "message": "Notifications deleted successfully",
+                      "deletedCount": 2
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid body",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" },
+                "examples": {
+                  "invalid": {
+                    "value": {
+                      "error": "notificationIds must be a non-empty array"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": { "$ref": "#/components/responses/JWTUnauthorized" },
+          "404": {
+            "description": "No notifications found for user with given ids",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" },
+                "examples": {
+                  "nf": {
+                    "value": {
+                      "error": "No notifications found for this user with the provided ids"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [{ "bearerAuth": [] }]
+      }
+    },
+
+    "/user/faqs/complaints": {
+      "get": {
+        "tags": ["Support & FAQs"],
+        "summary": "List complaint FAQs",
+        "operationId": "getFaqs",
+        "security": [],
+        "responses": {
+          "200": {
+            "description": "FAQ list",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/FaqListResponse" }
+              }
+            }
+          }
+        }
+      }
+    },
+
+    "/user/support": {
+      "put": {
+        "tags": ["Support & FAQs"],
+        "summary": "Record a support request for a complaint",
+        "operationId": "recordSupport",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "complaint_id",
+            "required": true,
+            "schema": { "type": "number" },
+            "description": "Complaint ID to associate"
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Support recorded",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GenericMessageResponse"
+                },
+                "examples": {
+                  "ok": {
+                    "value": {
+                      "message": "Support request recorded successfully"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": { "$ref": "#/components/responses/JWTUnauthorized" },
+          "404": {
+            "description": "User or Complaint not found",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" },
+                "examples": {
+                  "user": { "value": { "error": "User not found" } },
+                  "complaint": { "value": { "error": "Complaint not found" } }
+                }
+              }
+            }
+          }
+        },
+        "security": [{ "bearerAuth": [] }]
+      }
+    },
+    "/payments/create-order": {
+      "post": {
+        "tags": ["Payments"],
+        "summary": "Create a Razorpay order for an application",
+        "operationId": "createOrder",
+        "security": [{ "bearerAuth": [] }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/CreateOrderRequest" },
+              "examples": {
+                "default": {
+                  "value": {
+                    "application_id": "5c3ed8b2-9a0e-4c2e-8f81-8b0b1e8e0d77"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Order created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CreateOrderResponse"
+                },
+                "examples": {
+                  "ok": {
+                    "value": {
+                      "success": true,
+                      "message": "Order created successfully",
+                      "order": {
+                        "id": "ord_123",
+                        "provider_order_id": "order_RP_ABC123",
+                        "amount": 500000,
+                        "currency": "INR",
+                        "status": "Created"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request or application not payable",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+              }
+            }
+          },
+          "401": { "$ref": "#/components/responses/JWTUnauthorized" },
+          "404": {
+            "description": "Application not found",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+              }
+            }
+          },
+          "500": {
+            "description": "Order creation failed",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+              }
+            }
+          }
+        }
+      }
+    },
+
+    "/payments/verify-payment": {
+      "post": {
+        "tags": ["Payments"],
+        "summary": "Verify a captured Razorpay payment and mark order/application paid",
+        "operationId": "verifyPayment",
+        "security": [{ "bearerAuth": [] }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/VerifyPaymentRequest" },
+              "examples": {
+                "default": {
+                  "value": {
+                    "razorpay_payment_id": "pay_29QQoUBi66xm2f",
+                    "razorpay_order_id": "order_DBJOWzybf0sJbb",
+                    "razorpay_signature": "generated_signature_here"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Payment verified",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GenericSuccessResponse"
+                },
+                "examples": {
+                  "ok": {
+                    "value": { "success": true, "message": "Payment verified" }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid payload / signature mismatch / not captured / amount mismatch",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+              }
+            }
+          },
+          "401": { "$ref": "#/components/responses/JWTUnauthorized" },
+          "404": {
+            "description": "Order not found",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+              }
+            }
+          },
+          "500": {
+            "description": "Verification failed",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+              }
+            }
+          }
+        }
+      }
+    },
+
+    "/payments/update-payment-failure": {
+      "post": {
+        "tags": ["Payments"],
+        "summary": "Record a failed payment attempt for an order",
+        "operationId": "updatePaymentFailure",
+        "security": [{ "bearerAuth": [] }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdatePaymentFailureRequest"
+              },
+              "examples": {
+                "default": {
+                  "value": {
+                    "order_id": "ord_123",
+                    "provider_order_id": "order_DBJOWzybf0sJbb",
+                    "provider_payment_id": "pay_29QQoUBi66xm2f",
+                    "reason": "Payment failed due to insufficient funds"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Failure recorded",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GenericSuccessResponse"
+                },
+                "examples": {
+                  "ok": {
+                    "value": {
+                      "success": true,
+                      "message": "Payment failure recorded"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid order details",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+              }
+            }
+          },
+          "401": { "$ref": "#/components/responses/JWTUnauthorized" },
+          "404": {
+            "description": "Order not found",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+              }
+            }
+          },
+          "500": {
+            "description": "Recording failure failed",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+              }
+            }
+          }
+        }
+      }
+    },
+
+    "/payments/cancel-order": {
+      "post": {
+        "tags": ["Payments"],
+        "summary": "Cancel an order if not completed",
+        "operationId": "cancelOrder",
+        "security": [{ "bearerAuth": [] }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/CancelOrderRequest" },
+              "examples": {
+                "default": {
+                  "value": {
+                    "order_id": "ord_123",
+                    "provider_order_id": "order_DBJOWzybf0sJbb"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Order canceled",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GenericSuccessResponse"
+                },
+                "examples": {
+                  "ok": {
+                    "value": {
+                      "success": true,
+                      "message": "Order canceled successfully"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid order details",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+              }
+            }
+          },
+          "401": { "$ref": "#/components/responses/JWTUnauthorized" },
+          "404": {
+            "description": "Order not found",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+              }
+            }
+          },
+          "500": {
+            "description": "Cancellation failed",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+              }
+            }
+          }
+        }
+      }
     }
   },
   "components": {
@@ -1443,6 +2008,233 @@
           "signedUrl": { "type": "string", "format": "uri" }
         },
         "required": ["message", "path", "signedUrl"]
+      },
+
+      "NotificationPayload": {
+        "type": "object",
+        "required": ["title", "subtitle", "notificationId"],
+        "properties": {
+          "title": { "type": "string", "minLength": 1, "maxLength": 255 },
+          "subtitle": { "type": "string", "minLength": 1, "maxLength": 255 },
+          "notificationId": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 100
+          },
+          "imageUrl": {
+            "type": ["string", "null"],
+            "maxLength": 1000,
+            "nullable": true
+          },
+          "navigationUrl": {
+            "type": ["string", "null"],
+            "maxLength": 1000,
+            "nullable": true
+          },
+          "priority": {
+            "type": "string",
+            "enum": ["High", "Medium", "Low"],
+            "default": "Medium",
+            "nullable": true
+          }
+        }
+      },
+
+      "NotificationItem": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "integer" },
+          "title": { "type": "string" },
+          "subtitle": { "type": "string" },
+          "created_at": { "type": "string", "format": "date-time" },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "is_read": { "type": "boolean" },
+          "imageUrl": {
+            "type": ["string", "null"],
+            "format": "uri",
+            "nullable": true
+          },
+          "navigationUrl": {
+            "type": ["string", "null"],
+            "format": "uri",
+            "nullable": true
+          },
+          "priority": {
+            "type": ["string", "null"],
+            "enum": ["High", "Medium", "Low"],
+            "nullable": true
+          },
+          "notificationId": { "type": "string" }
+        },
+        "required": [
+          "id",
+          "title",
+          "subtitle",
+          "created_at",
+          "is_read",
+          "notificationId"
+        ]
+      },
+
+      "NotificationListResponse": {
+        "type": "array",
+        "items": { "$ref": "#/components/schemas/NotificationItem" }
+      },
+
+      "GenericMessageResponse": {
+        "type": "object",
+        "properties": { "message": { "type": "string" } },
+        "required": ["message"]
+      },
+
+      "DeleteNotificationsRequest": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["notificationIds"],
+        "properties": {
+          "notificationIds": {
+            "type": "array",
+            "minItems": 1,
+            "items": { "type": "string" }
+          }
+        }
+      },
+
+      "DeleteNotificationsResponse": {
+        "type": "object",
+        "properties": {
+          "message": {
+            "type": "string",
+            "example": "Notifications deleted successfully"
+          },
+          "deletedCount": { "type": "integer", "minimum": 0 }
+        },
+        "required": ["message", "deletedCount"]
+      },
+
+      "FaqItem": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "integer" },
+          "question": { "type": "string" },
+          "answer": { "type": "string" }
+        },
+        "required": ["id", "question", "answer"]
+      },
+
+      "FaqListResponse": {
+        "type": "array",
+        "items": { "$ref": "#/components/schemas/FaqItem" }
+      },
+      "CreateOrderRequest": {
+        "type": "object",
+        "required": ["application_id"],
+        "properties": {
+          "application_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "applied_colleges.ref_id"
+          }
+        },
+        "additionalProperties": false
+      },
+
+      "CreateOrderResponse": {
+        "type": "object",
+        "properties": {
+          "success": { "type": "boolean" },
+          "message": { "type": "string" },
+          "order": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string",
+                "description": "Internal order ID (UUID)"
+              },
+              "provider_order_id": {
+                "type": "string",
+                "description": "Razorpay order id"
+              },
+              "amount": {
+                "type": "integer",
+                "description": "Amount in paisa (Razorpay minor units)",
+                "example": 500000
+              },
+              "currency": { "type": "string", "example": "INR" },
+              "status": { "type": "string", "example": "Created" }
+            },
+            "required": [
+              "id",
+              "provider_order_id",
+              "amount",
+              "currency",
+              "status"
+            ]
+          }
+        },
+        "required": ["success", "message", "order"]
+      },
+
+      "VerifyPaymentRequest": {
+        "type": "object",
+        "required": [
+          "razorpay_payment_id",
+          "razorpay_order_id",
+          "razorpay_signature"
+        ],
+        "properties": {
+          "razorpay_payment_id": { "type": "string" },
+          "razorpay_order_id": {
+            "type": "string",
+            "description": "Must match orders.provider_order_id"
+          },
+          "razorpay_signature": { "type": "string" }
+        },
+        "additionalProperties": false
+      },
+
+      "UpdatePaymentFailureRequest": {
+        "type": "object",
+        "required": ["order_id", "provider_order_id", "provider_payment_id"],
+        "properties": {
+          "order_id": { "type": "string", "description": "orders.id (UUID)" },
+          "provider_order_id": {
+            "type": "string",
+            "description": "Razorpay order id"
+          },
+          "provider_payment_id": {
+            "type": "string",
+            "description": "Razorpay payment id"
+          },
+          "reason": { "type": "string", "nullable": true }
+        },
+        "additionalProperties": false
+      },
+
+      "CancelOrderRequest": {
+        "type": "object",
+        "required": ["order_id", "provider_order_id"],
+        "properties": {
+          "order_id": { "type": "string", "description": "orders.id (UUID)" },
+          "provider_order_id": {
+            "type": "string",
+            "description": "Razorpay order id"
+          }
+        },
+        "additionalProperties": false
+      },
+
+      "GenericSuccessResponse": {
+        "type": "object",
+        "properties": {
+          "success": { "type": "boolean", "example": true },
+          "message": { "type": "string" }
+        },
+        "required": ["success", "message"]
       }
     }
   }

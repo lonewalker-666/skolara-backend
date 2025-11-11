@@ -16,6 +16,7 @@ import collegeRoutes from "./routes/colleges.js";
 import multipart, { MultipartFile } from "@fastify/multipart";
 import supabasePlugin from "./plugins/supabase";
 import { uploadRoutes } from "./routes/uploads.js";
+import paymentsRoutes from "./routes/payments.js";
 
 // ──────────────────────────────────────────────
 // Fastify instance
@@ -202,6 +203,7 @@ await fastify.register(authRoutes, { prefix: "/api/auth" });
 await fastify.register(userRoutes, { prefix: "/api/user" });
 await fastify.register(collegeRoutes, { prefix: "/api/colleges" });
 await fastify.register(uploadRoutes, { prefix: "/api/uploads" });
+await fastify.register(paymentsRoutes, { prefix: "/api/payments" });
 
 // ──────────────────────────────────────────────
 // Start server (skipped during tests)

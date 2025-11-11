@@ -60,6 +60,14 @@ enum payment_provider {
   @@schema("development")
 }
 
+enum priority {
+  High
+  Medium
+  Low
+
+  @@schema("development")
+}
+
 // -------------------------- Models --------------------------
 
 model users {
@@ -84,6 +92,53 @@ model users {
   saved_colleges   saved_colleges[]
   applied_colleges applied_colleges[]
   orders           orders[]
+  user_compliances user_compliance[]
+  notifications    notifications[]
+
+  @@schema("development")
+}
+
+model complaints {
+  id         Int      @id @default(autoincrement())
+  question   String   @unique @db.VarChar(255)
+  answer     String   @db.VarChar(2000)
+  created_at DateTime @default(now()) @db.Timestamptz(6)
+  updated_at DateTime @default(now()) @updatedAt @db.Timestamptz(6)
+
+  user_compliances user_compliance[]
+
+  @@schema("development")
+}
+
+model user_compliance {
+  id           Int      @id @default(autoincrement())
+  user_id      Int
+  complaint_id Int
+  created_at   DateTime @default(now()) @db.Timestamptz(6)
+  updated_at   DateTime @default(now()) @updatedAt @db.Timestamptz(6)
+
+  // Relations
+  user      users      @relation(fields: [user_id], references: [id])
+  complaint complaints @relation(fields: [complaint_id], references: [id])
+
+  @@schema("development")
+}
+
+model notifications {
+  id             Int      @id @default(autoincrement())
+  user_id        Int
+  title          String   @db.VarChar(255)
+  notificationId String   @unique @db.VarChar(255)
+  subtitle       String   @db.VarChar(255)
+  imageUrl       String?  @db.VarChar(1000)
+  navigationUrl  String?  @db.VarChar(1000)
+  priority       priority @default(Medium)
+  is_read        Boolean  @default(false)
+  created_at     DateTime @default(now()) @db.Timestamptz(6)
+  updated_at     DateTime @default(now()) @updatedAt @db.Timestamptz(6)
+
+  // Relations
+  user users @relation(fields: [user_id], references: [id])
 
   @@schema("development")
 }

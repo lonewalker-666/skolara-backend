@@ -1,4 +1,5 @@
 import { FastifyRequest } from "fastify";
+import { maxLength, minLength, toLowerCase } from "zod/v4";
 
 export type MultipartRequest<P = { type: "hsc" | "sslc" }> = FastifyRequest<{
   Params: P;
@@ -51,3 +52,30 @@ export const savedCollegesSchema = {
     ],
   },
 } as const;
+
+export const notificationPayloadSchema = {
+  type: "object",
+  required: ["title", "subtitle", "notificationId"],
+  properties: {
+    title: { type: "string", minLength: 1, maxLength: 255 },
+    subtitle: { type: "string", minLength: 1, maxLength: 255 },
+    notificationId: { type: "string",minLength:1, maxLength:100},
+    imageUrl: { type: ["string", "null"] , maxLength: 1000, nullable: true },
+    navigationUrl: { type: ["string", "null"], maxLength: 1000, nullable: true },
+    priority: { type: "string", enum: ["High", "Medium", "Low"], default: "Medium", nullable: true },
+  },
+} as const;
+
+export type NotificationPayload = {
+  title: string;
+  subtitle: string;
+  imageUrl: string | null;
+  navigationUrl: string | null;
+  priority: "High" | "Medium" | "Low";
+  notificationId: string;
+};
+
+export type DeleteNotificationsBody = {
+  notificationIds: string[];
+};
+

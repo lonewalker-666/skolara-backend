@@ -4,7 +4,7 @@ import {
   uploadAccountController,
   uploadApplicationController,
 } from "../controllers/upload";
-import { binaryBodySchema, TypeParams, typeParamSchema } from "../types/types";
+import { TypeParams, typeParamSchema } from "../types/types";
 
 export async function uploadRoutes(app: FastifyInstance) {
   app.put<{ Params: TypeParams }>(

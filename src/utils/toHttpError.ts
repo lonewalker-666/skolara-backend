@@ -173,7 +173,7 @@ export default function toHttpError(e: unknown): {
         return {
           status: 409,
           payload: {
-            error: "Duplicate value violates unique constraint",
+            error: "Already exists",
             ...base,
           },
         };
@@ -182,17 +182,17 @@ export default function toHttpError(e: unknown): {
       case "P2003":
         return {
           status: 400,
-          payload: { error: "Foreign key constraint failed", ...base },
+          payload: { error: "Invalid Request", ...base },
         };
       case "P2000":
         return {
           status: 400,
-          payload: { error: "Value too long for column", ...base },
+          payload: { error: "Value too long", ...base },
         };
       case "P2024":
         return { status: 503, payload: { error: "Database timeout", ...base } };
       default:
-        return { status: 500, payload: { error: "Database error", ...base } };
+        return { status: 500, payload: { error: "Internal server error", ...base } };
     }
   }
 

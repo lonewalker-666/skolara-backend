@@ -1,6 +1,16 @@
 import { FastifyInstance } from "fastify";
-import { getUserProfile, updateUserProfile } from "../controllers/user";
+import {
+  addNotification,
+  deleteNotification,
+  getFaq,
+  getNotifications,
+  getUserProfile,
+  markNotificationAsRead,
+  recordSupport,
+  updateUserProfile,
+} from "../controllers/user";
 import { authGuard } from "../services/authGuard";
+import { notificationPayloadSchema } from "../types/types";
 
 export default async function userRoutes(app: FastifyInstance) {
   app.get(
@@ -9,7 +19,7 @@ export default async function userRoutes(app: FastifyInstance) {
       schema: {},
       preHandler: [authGuard],
     },
-    getUserProfile,
+    getUserProfile
   );
 
   app.put(
@@ -42,6 +52,77 @@ export default async function userRoutes(app: FastifyInstance) {
       },
       preHandler: [authGuard],
     },
-    updateUserProfile,
+    updateUserProfile
+  );
+
+  app.get("/notifications/all", { preHandler: [authGuard] }, getNotifications);
+  app.post(
+    "/notifications/add",
+    {
+      schema: {
+        body: notificationPayloadSchema,
+      },
+      preHandler: [authGuard],
+    },
+    addNotification
+  );
+  app.put(
+    "/notifications/mark-read/:id",
+    {
+      schema: {
+        params: {
+          type: "object",
+          properties: { id: { type: "string" } },
+          required: ["id"],
+        },
+      },
+      preHandler: [authGuard],
+    },
+    markNotificationAsRead
+  );
+
+  app.post(
+    "/notifications/delete",
+    {
+      schema: {
+        body: {
+          type: "object",
+          properties: {
+            notificationIds: {
+              type: "array",
+              items: { type: "string" },
+              minItems: 1,
+            },
+          },
+          required: ["notificationIds"],
+          additionalProperties: false,
+        },
+      },
+      preHandler: [authGuard],
+    },
+    deleteNotification
+  );
+
+  app.get(
+    "/faqs/complaints",
+    {
+      schema: {},
+    },
+    getFaq
+  );
+
+  app.put(
+    "/support",
+    {
+      schema: {
+        querystring: {
+          type: "object",
+          properties: { complaint_id: { type: "number" } },
+          required: ["complaint_id"],
+        },
+      },
+      preHandler: [authGuard],
+    },
+    recordSupport
   );
 }

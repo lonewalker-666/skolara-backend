@@ -17,8 +17,6 @@ const envSchema = z.object({
     .string()
     .transform((val) => val === "true")
     .default("false"),
-  // PAYMENT_PROVIDER_API_KEY: z.string().optional(),
-  // PAYMENT_PROVIDER_API_SECRET: z.string().optional(),
   JWT_ACCESS_SECRET: z
     .string()
     .min(32, "JWT_ACCESS_SECRET must be at least 32 characters long"),
@@ -39,6 +37,8 @@ const envSchema = z.object({
   SUPABASE_SERVICE_ROLE_KEY: z.string(),
   SUPABASE_URL: z.string(),
   SUPABASE_BUCKET: z.string(),
+  RAZORPAY_KEY_ID: z.string(),
+  RAZORPAY_KEY_SECRET: z.string(),
 });
 
 export const env = envSchema.parse(process.env);

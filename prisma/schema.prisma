@@ -155,21 +155,24 @@ model college_type {
 }
 
 model college {
-  id              Int      @id @default(autoincrement())
-  ref_id          String   @unique @default(uuid()) @db.Uuid
-  name            String   @db.VarChar(255)
-  short_name      String?  @db.VarChar(10)
-  area            String   @db.VarChar(255)
-  city            String   @db.VarChar(100)
-  website         String   @db.VarChar(255)
-  college_type_id Int
-  fee_details     String?   @db.Text
-  deadline        DateTime @db.Date
-  description     String   @db.Text
-  logo_url        String   @db.VarChar(500)
-  cover_url       String   @db.VarChar(500)
-  created_at      DateTime @default(now()) @db.Timestamptz(6)
-  updated_at      DateTime @default(now()) @updatedAt @db.Timestamptz(6)
+  id               Int      @id @default(autoincrement())
+  ref_id           String   @unique @default(uuid()) @db.Uuid
+  name             String   @db.VarChar(255)
+  short_name       String?  @db.VarChar(10)
+  area             String   @db.VarChar(255)
+  city             String   @db.VarChar(100)
+  website          String   @db.VarChar(255)
+  college_type_id  Int
+  fee_details      String?  @db.Text
+  ug_courses       String?  @db.Text
+  pg_courses       String?  @db.Text
+  doctoral_courses String?  @db.Text
+  deadline         DateTime @db.Date
+  description      String   @db.Text
+  logo_url         String   @db.VarChar(500)
+  cover_url        String   @db.VarChar(500)
+  created_at       DateTime @default(now()) @db.Timestamptz(6)
+  updated_at       DateTime @default(now()) @updatedAt @db.Timestamptz(6)
 
   // Relations
   college_type      college_type               @relation(fields: [college_type_id], references: [id], onDelete: Cascade)

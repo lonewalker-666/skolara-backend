@@ -121,6 +121,9 @@ export async function getCollegeById(
       cover_url: true,
       description: true,
       deadline: true,
+      ug_courses: true,
+      pg_courses: true,
+      doctoral_courses: true,
       fee_details: true,
       eligibility: {
         select: {
@@ -200,6 +203,9 @@ export async function getCollegeById(
     logo_url: college.logo_url,
     cover_url: college.cover_url,
     fee_details: college.fee_details,
+    ug_courses: college.ug_courses,
+    pg_courses: college.pg_courses,
+    doctoral_courses: college.doctoral_courses,
     is_saved: college.saved_by.length > 0,
     is_applied: college.applied_by.length > 0,
     description: college.description,

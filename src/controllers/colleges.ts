@@ -121,6 +121,7 @@ export async function getCollegeById(
       cover_url: true,
       description: true,
       deadline: true,
+      fee_details: true,
       eligibility: {
         select: {
           id: true,
@@ -198,6 +199,7 @@ export async function getCollegeById(
     city: college.city,
     logo_url: college.logo_url,
     cover_url: college.cover_url,
+    fee_details: college.fee_details,
     is_saved: college.saved_by.length > 0,
     is_applied: college.applied_by.length > 0,
     description: college.description,

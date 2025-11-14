@@ -163,6 +163,7 @@ model college {
   city            String   @db.VarChar(100)
   website         String   @db.VarChar(255)
   college_type_id Int
+  fee_details     String?   @db.Text
   deadline        DateTime @db.Date
   description     String   @db.Text
   logo_url        String   @db.VarChar(500)

@@ -13,7 +13,7 @@ import path from "path";
 import { fileURLToPath } from "url";
 import userRoutes from "./routes/user.js";
 import collegeRoutes from "./routes/colleges.js";
-import multipart, { MultipartFile } from "@fastify/multipart";
+import multipart from "@fastify/multipart";
 import supabasePlugin from "./plugins/supabase";
 import { uploadRoutes } from "./routes/uploads.js";
 import paymentsRoutes from "./routes/payments.js";

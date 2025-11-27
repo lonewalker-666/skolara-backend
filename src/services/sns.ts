@@ -3,7 +3,7 @@ import { env } from "../config/env";
 import axios from "axios";
 import HttpError from "../utils/httpError";
 
-const { AWS_REGION, AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY } = env;
+const { AWS_REGION, AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY,SMS_API_KEY,SMS_SENDER_ID } = env;
 
 const client = new SNSClient({
   region: AWS_REGION,
@@ -49,8 +49,8 @@ export async function sendSms(mobile: string, message: string) {
 
     const response = await axios.get(url, {
       params: {
-        apikey: "4FClQdEklXUr3h1L",
-        senderid: "MYDTEH",
+        apikey: SMS_API_KEY,
+        senderid: SMS_SENDER_ID,
         number: mobile,
         message: message,
       },

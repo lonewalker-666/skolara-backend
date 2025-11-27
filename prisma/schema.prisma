@@ -472,3 +472,9 @@ model otp_verification {
   @@index([mobile, created_at]) // helps hourly-rate queries
   @@schema("development")
 }
+
+model app_data_migration {
+  name String @unique @db.Text
+
+  @@schema("development")
+}

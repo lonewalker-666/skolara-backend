@@ -4,7 +4,7 @@ export const HostelSharingTypeSeeder: Seeder = {
   name: "Hostel Sharing Types",
   async run(prisma) {
     await prisma.hostel_sharing_type.createMany({
-      data: [{ name: "Single" }, { name: "Double" }, { name: "Triple" }],
+      data: [{ name: "Single" }, { name: "Double" }, { name: "Triple" }, {name: "Others"}],
       skipDuplicates: true,
     });
   },

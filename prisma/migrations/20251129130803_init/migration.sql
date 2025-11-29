@@ -16,6 +16,9 @@ CREATE TYPE "development"."order_status_type" AS ENUM ('Created', 'Cancelled', '
 -- CreateEnum
 CREATE TYPE "development"."payment_provider" AS ENUM ('RazorPay');
 
+-- CreateEnum
+CREATE TYPE "development"."priority" AS ENUM ('High', 'Medium', 'Low');
+
 -- CreateTable
 CREATE TABLE "development"."users" (
     "id" SERIAL NOT NULL,
@@ -39,6 +42,45 @@ CREATE TABLE "development"."users" (
 );
 
 -- CreateTable
+CREATE TABLE "development"."complaints" (
+    "id" SERIAL NOT NULL,
+    "question" VARCHAR(255) NOT NULL,
+    "answer" VARCHAR(2000) NOT NULL,
+    "created_at" TIMESTAMPTZ(6) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updated_at" TIMESTAMPTZ(6) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT "complaints_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "development"."user_compliance" (
+    "id" SERIAL NOT NULL,
+    "user_id" INTEGER NOT NULL,
+    "complaint_id" INTEGER NOT NULL,
+    "created_at" TIMESTAMPTZ(6) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updated_at" TIMESTAMPTZ(6) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT "user_compliance_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "development"."notifications" (
+    "id" SERIAL NOT NULL,
+    "user_id" INTEGER NOT NULL,
+    "title" VARCHAR(255) NOT NULL,
+    "notificationId" VARCHAR(255) NOT NULL,
+    "subtitle" VARCHAR(255) NOT NULL,
+    "imageUrl" VARCHAR(1000),
+    "navigationUrl" VARCHAR(1000),
+    "priority" "development"."priority" NOT NULL DEFAULT 'Medium',
+    "is_read" BOOLEAN NOT NULL DEFAULT false,
+    "created_at" TIMESTAMPTZ(6) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updated_at" TIMESTAMPTZ(6) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT "notifications_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
 CREATE TABLE "development"."college_type" (
     "id" SERIAL NOT NULL,
     "name" VARCHAR(255) NOT NULL,
@@ -53,11 +95,16 @@ CREATE TABLE "development"."college" (
     "id" SERIAL NOT NULL,
     "ref_id" UUID NOT NULL,
     "name" VARCHAR(255) NOT NULL,
+    "short_name" VARCHAR(30),
     "area" VARCHAR(255) NOT NULL,
     "city" VARCHAR(100) NOT NULL,
     "website" VARCHAR(255) NOT NULL,
     "college_type_id" INTEGER NOT NULL,
-    "deadline" DATE NOT NULL,
+    "fee_details" TEXT,
+    "ug_courses" TEXT,
+    "pg_courses" TEXT,
+    "doctoral_courses" TEXT,
+    "deadline" DATE,
     "description" TEXT NOT NULL,
     "logo_url" VARCHAR(500) NOT NULL,
     "cover_url" VARCHAR(500) NOT NULL,
@@ -84,6 +131,7 @@ CREATE TABLE "development"."degree" (
     "name" VARCHAR(255) NOT NULL,
     "degree_type_id" INTEGER NOT NULL,
     "specialization" VARCHAR(255),
+    "duration_months" INTEGER NOT NULL,
     "description" TEXT,
     "created_at" TIMESTAMPTZ(6) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updated_at" TIMESTAMPTZ(6) NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -100,7 +148,6 @@ CREATE TABLE "development"."college_degree_fee_range" (
     "year" VARCHAR(4) NOT NULL,
     "min_annual_fee" DECIMAL(12,2),
     "max_annual_fee" DECIMAL(12,2),
-    "duration_months" INTEGER NOT NULL,
     "application_fee" DECIMAL(12,2),
     "currency" "development"."currency_type" NOT NULL DEFAULT 'INR',
     "note" TEXT,
@@ -142,13 +189,23 @@ CREATE TABLE "development"."hostel_facility" (
 CREATE TABLE "development"."eligibility_criteria" (
     "id" SERIAL NOT NULL,
     "college_id" INTEGER NOT NULL,
-    "degree_id" INTEGER NOT NULL,
     "criteria_type" VARCHAR(255) NOT NULL,
-    "criteria" TEXT,
+    "criteria" TEXT NOT NULL,
     "created_at" TIMESTAMPTZ(6) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updated_at" TIMESTAMPTZ(6) NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
     CONSTRAINT "eligibility_criteria_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "development"."scholarships" (
+    "id" SERIAL NOT NULL,
+    "college_id" INTEGER NOT NULL,
+    "schemes" TEXT NOT NULL,
+    "created_at" TIMESTAMPTZ(6) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updated_at" TIMESTAMPTZ(6) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT "scholarships_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
@@ -178,24 +235,24 @@ CREATE TABLE "development"."applied_colleges" (
     "id" SERIAL NOT NULL,
     "college_id" INTEGER NOT NULL,
     "user_id" INTEGER NOT NULL,
-    "is_active" BOOLEAN DEFAULT true,
+    "application_status_id" INTEGER NOT NULL DEFAULT 1,
+    "ref_id" UUID NOT NULL,
+    "amount" DECIMAL(12,2),
+    "hsc_path" TEXT,
+    "sslc_path" TEXT NOT NULL,
+    "is_active" BOOLEAN NOT NULL DEFAULT true,
+    "paid" BOOLEAN NOT NULL DEFAULT false,
+    "ready_to_pay" BOOLEAN NOT NULL DEFAULT false,
+    "paid_at" TIMESTAMPTZ(6),
     "created_at" TIMESTAMPTZ(6) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "applied_at" TIMESTAMPTZ(6) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "submitted_at" TIMESTAMPTZ(6),
+    "reviewed_at" TIMESTAMPTZ(6),
+    "accepted_at" TIMESTAMPTZ(6),
+    "documents_verified_at" TIMESTAMPTZ(6),
     "updated_at" TIMESTAMPTZ(6) NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
     CONSTRAINT "applied_colleges_pkey" PRIMARY KEY ("id")
-);
-
--- CreateTable
-CREATE TABLE "development"."application_tracking" (
-    "id" SERIAL NOT NULL,
-    "application_id" INTEGER NOT NULL,
-    "application_status_id" INTEGER NOT NULL DEFAULT 1,
-    "ssl_marksheet" VARCHAR(255),
-    "hsc_marksheet" VARCHAR(255),
-    "created_at" TIMESTAMPTZ(6) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updated_at" TIMESTAMPTZ(6) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-
-    CONSTRAINT "application_tracking_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
@@ -286,6 +343,12 @@ CREATE TABLE "development"."otp_verification" (
     CONSTRAINT "otp_verification_pkey" PRIMARY KEY ("id")
 );
 
+-- CreateTable
+CREATE TABLE "development"."app_data_migration" (
+    "name" TEXT NOT NULL,
+    "duration_ms" INTEGER NOT NULL DEFAULT 0
+);
+
 -- CreateIndex
 CREATE UNIQUE INDEX "users_email_key" ON "development"."users"("email");
 
@@ -294,6 +357,12 @@ CREATE UNIQUE INDEX "users_mobile_key" ON "development"."users"("mobile");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "users_ref_id_key" ON "development"."users"("ref_id");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "complaints_question_key" ON "development"."complaints"("question");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "notifications_notificationId_key" ON "development"."notifications"("notificationId");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "college_type_name_key" ON "development"."college_type"("name");
@@ -332,10 +401,10 @@ CREATE UNIQUE INDEX "hostel_facility_college_id_hostel_sharing_type_id_gender_ac
 CREATE INDEX "eligibility_criteria_college_id_idx" ON "development"."eligibility_criteria"("college_id");
 
 -- CreateIndex
-CREATE INDEX "eligibility_criteria_degree_id_idx" ON "development"."eligibility_criteria"("degree_id");
+CREATE UNIQUE INDEX "eligibility_criteria_college_id_criteria_type_key" ON "development"."eligibility_criteria"("college_id", "criteria_type");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "eligibility_criteria_college_id_degree_id_criteria_type_key" ON "development"."eligibility_criteria"("college_id", "degree_id", "criteria_type");
+CREATE INDEX "scholarships_college_id_idx" ON "development"."scholarships"("college_id");
 
 -- CreateIndex
 CREATE INDEX "saved_colleges_college_id_idx" ON "development"."saved_colleges"("college_id");
@@ -350,22 +419,16 @@ CREATE UNIQUE INDEX "saved_colleges_college_id_user_id_key" ON "development"."sa
 CREATE UNIQUE INDEX "application_status_name_key" ON "development"."application_status"("name");
 
 -- CreateIndex
+CREATE UNIQUE INDEX "applied_colleges_ref_id_key" ON "development"."applied_colleges"("ref_id");
+
+-- CreateIndex
 CREATE INDEX "applied_colleges_college_id_idx" ON "development"."applied_colleges"("college_id");
 
 -- CreateIndex
 CREATE INDEX "applied_colleges_user_id_idx" ON "development"."applied_colleges"("user_id");
 
 -- CreateIndex
-CREATE INDEX "applied_colleges_college_id_user_id_idx" ON "development"."applied_colleges"("college_id", "user_id");
-
--- CreateIndex
-CREATE INDEX "application_tracking_application_id_idx" ON "development"."application_tracking"("application_id");
-
--- CreateIndex
-CREATE INDEX "application_tracking_application_status_id_idx" ON "development"."application_tracking"("application_status_id");
-
--- CreateIndex
-CREATE UNIQUE INDEX "application_tracking_application_id_application_status_id_key" ON "development"."application_tracking"("application_id", "application_status_id");
+CREATE UNIQUE INDEX "applied_colleges_college_id_user_id_is_active_key" ON "development"."applied_colleges"("college_id", "user_id", "is_active");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "top_recruiters_college_id_key" ON "development"."top_recruiters"("college_id");
@@ -406,6 +469,18 @@ CREATE INDEX "otp_verification_mobile_is_active_idx" ON "development"."otp_verif
 -- CreateIndex
 CREATE INDEX "otp_verification_mobile_created_at_idx" ON "development"."otp_verification"("mobile", "created_at");
 
+-- CreateIndex
+CREATE UNIQUE INDEX "app_data_migration_name_key" ON "development"."app_data_migration"("name");
+
+-- AddForeignKey
+ALTER TABLE "development"."user_compliance" ADD CONSTRAINT "user_compliance_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "development"."users"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "development"."user_compliance" ADD CONSTRAINT "user_compliance_complaint_id_fkey" FOREIGN KEY ("complaint_id") REFERENCES "development"."complaints"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "development"."notifications" ADD CONSTRAINT "notifications_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "development"."users"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
 -- AddForeignKey
 ALTER TABLE "development"."college" ADD CONSTRAINT "college_college_type_id_fkey" FOREIGN KEY ("college_type_id") REFERENCES "development"."college_type"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
@@ -428,7 +503,7 @@ ALTER TABLE "development"."hostel_facility" ADD CONSTRAINT "hostel_facility_host
 ALTER TABLE "development"."eligibility_criteria" ADD CONSTRAINT "eligibility_criteria_college_id_fkey" FOREIGN KEY ("college_id") REFERENCES "development"."college"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "development"."eligibility_criteria" ADD CONSTRAINT "eligibility_criteria_degree_id_fkey" FOREIGN KEY ("degree_id") REFERENCES "development"."degree"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "development"."scholarships" ADD CONSTRAINT "scholarships_college_id_fkey" FOREIGN KEY ("college_id") REFERENCES "development"."college"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "development"."saved_colleges" ADD CONSTRAINT "saved_colleges_college_id_fkey" FOREIGN KEY ("college_id") REFERENCES "development"."college"("id") ON DELETE CASCADE ON UPDATE CASCADE;
@@ -443,10 +518,7 @@ ALTER TABLE "development"."applied_colleges" ADD CONSTRAINT "applied_colleges_co
 ALTER TABLE "development"."applied_colleges" ADD CONSTRAINT "applied_colleges_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "development"."users"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "development"."application_tracking" ADD CONSTRAINT "application_tracking_application_id_fkey" FOREIGN KEY ("application_id") REFERENCES "development"."applied_colleges"("id") ON DELETE CASCADE ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE "development"."application_tracking" ADD CONSTRAINT "application_tracking_application_status_id_fkey" FOREIGN KEY ("application_status_id") REFERENCES "development"."application_status"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "development"."applied_colleges" ADD CONSTRAINT "applied_colleges_application_status_id_fkey" FOREIGN KEY ("application_status_id") REFERENCES "development"."application_status"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "development"."top_recruiters" ADD CONSTRAINT "top_recruiters_college_id_fkey" FOREIGN KEY ("college_id") REFERENCES "development"."college"("id") ON DELETE CASCADE ON UPDATE CASCADE;

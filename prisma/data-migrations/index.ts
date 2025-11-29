@@ -48,9 +48,9 @@ async function getAppliedSet(): Promise<Set<string>> {
   return new Set(rows.map((r: { name: any; }) => r.name));
 }
 
-async function markApplied(name: string, durationMs: number, note?: string) {
+async function markApplied(name: string, durationMs: number) {
   await prisma.app_data_migration.create({
-    data: { name, duration_ms: durationMs, success: true, note },
+    data: { name, duration_ms: durationMs },
   });
 }
 

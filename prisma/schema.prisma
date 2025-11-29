@@ -158,7 +158,7 @@ model college {
   id               Int      @id @default(autoincrement())
   ref_id           String   @unique @default(uuid()) @db.Uuid
   name             String   @db.VarChar(255)
-  short_name       String?  @db.VarChar(10)
+  short_name       String?  @db.VarChar(30)
   area             String   @db.VarChar(255)
   city             String   @db.VarChar(100)
   website          String   @db.VarChar(255)
@@ -167,7 +167,7 @@ model college {
   ug_courses       String?  @db.Text
   pg_courses       String?  @db.Text
   doctoral_courses String?  @db.Text
-  deadline         DateTime @db.Date
+  deadline         DateTime? @db.Date
   description      String   @db.Text
   logo_url         String   @db.VarChar(500)
   cover_url        String   @db.VarChar(500)
@@ -474,7 +474,8 @@ model otp_verification {
 }
 
 model app_data_migration {
-  name String @unique @db.Text
+  name        String @unique @db.Text
+  duration_ms Int    @default(0)
 
   @@schema("development")
 }

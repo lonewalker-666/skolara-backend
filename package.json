@@ -18,7 +18,9 @@
     "lint": "eslint src/**/*.ts",
     "format": "prettier --write src/**/*.ts",
     "seed": "tsx prisma/seeders/seed.ts",
-    "seed:single": "tsx prisma/seeders/seed.ts"
+    "seed:single": "tsx prisma/seeders/seed.ts",
+    "migrate-data": "tsx prisma/data-migrations/index.ts",
+    "migrate-data:single": "tsx prisma/data-migrations/index.ts"
   },
   "dependencies": {
     "@aws-sdk/client-sns": "^3.888.0",
@@ -38,6 +40,7 @@
     "rate-limiter-flexible": "^3.0.6",
     "razorpay": "^2.9.6",
     "supabase": "^2.47.2",
+    "xlsx": "^0.18.5",
     "zod": "^3.22.4",
     "zod-to-json-schema": "^3.24.6"
   },
